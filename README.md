@@ -1,4 +1,5 @@
 # Smart Campus Seat & Queue Tracker
+built by Apeksha, Gowri and Dharini
 
 Cameras + YOLO find free seats, ghost seats (bag, no person), best group seats, and queue wait time.
 We store only counts, never faces or footage.
