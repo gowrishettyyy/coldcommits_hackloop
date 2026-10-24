@@ -1,2 +1,18 @@
-# coldcommits_hackloop
-Smart Canteen &amp; Café Crowd Management using Computer Vision  Students waste time at canteens and cafés in and around campus, facing long queues with no idea of the wait and finding seats full on arrival. Owners also lack data on peak hours. Our system uses cameras and computer vision to show free seats, crowd levels, and wait times in real time.
+# Smart Campus Seat & Queue Tracker
+
+Cameras + YOLO find free seats, ghost seats (bag, no person), best group seats, and queue wait time.
+We store only counts, never faces or footage.
+
+## Run it
+1. Install Python 3.11, then in this folder: `pip install -r requirements.txt`
+2. Put a short video here named `sample.mp4`
+3. `python make_seats.py sample.mp4 0`  (creates seats.json)
+4. `streamlit run app.py`
+
+## Files
+- detection.py - YOLO finds people, chairs, bags (Person 1)
+- make_seats.py - builds seats.json from chairs (Person 1)
+- logic.py - seat states, ghost seats, group finder, queue wait (Person 2)
+- pipeline.py - joins everything
+- app.py - the website (Person 3)
+- config.json - settings (ghost_seconds is 5 for demo; 1200 = 20 min in real use)
