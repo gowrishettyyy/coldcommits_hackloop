@@ -1,6 +1,6 @@
 /* Campus Pulse - soft cream, one rounded font, very large type.
    The landing page is the brand: a giant 3D wordmark, then the two questions.
-   Everything else hangs off the hammer in the top right corner. */
+   Everything else hangs off the menu button in the top right corner. */
 
 @font-face {
   font-family: 'Nunito';
@@ -86,7 +86,7 @@ code {
 svg { display: block; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 
-/* ---------- chrome: wordmark + hammer, nothing else ---------- */
+/* ---------- chrome: wordmark + hamburger, nothing else ---------- */
 .chrome {
   position: fixed; inset: 0 0 auto 0; z-index: 30;
   display: flex; align-items: center; justify-content: space-between;
@@ -102,7 +102,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 }
 body:not([data-screen="home"]) .wordmark-mini { opacity: 1; transform: none; }
 
-.hammer {
+.menu-toggle {
   width: 54px; height: 54px; border-radius: 50%;
   display: grid; place-items: center;
   color: var(--ink);
@@ -112,9 +112,9 @@ body:not([data-screen="home"]) .wordmark-mini { opacity: 1; transform: none; }
   box-shadow: 0 8px 24px rgba(86, 68, 40, 0.12);
   transition: transform 0.18s ease, background 0.18s ease;
 }
-.hammer:hover { transform: rotate(-8deg) scale(1.05); background: #fff; }
-.hammer:active { transform: scale(0.95); }
-.hammer svg { width: 25px; height: 25px; }
+.menu-toggle:hover { transform: scale(1.05); background: #fff; }
+.menu-toggle:active { transform: scale(0.95); }
+.menu-toggle svg { width: 26px; height: 26px; }
 
 /* ---------- page ---------- */
 .viewport { max-width: 1120px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 44px) 140px; }
@@ -422,8 +422,6 @@ body:not([data-screen="home"]) .wordmark-mini { opacity: 1; transform: none; }
 .alert b { font-size: 17px; font-weight: 700; }
 .alert p { margin: 4px 0 0; font-size: 15.5px; color: var(--ink-2); }
 .alert .when { font-size: 14px; color: var(--ink-3); margin-top: 8px; }
-.alert-ticket { padding: 26px 0; border-bottom: 1px solid var(--sep-soft); }
-.ticket-code { font-size: 22px; font-weight: 700; letter-spacing: 0.06em; color: var(--accent); margin: 16px 0 0; }
 
 /* ---------- staff view ---------- */
 .staff-banner {
@@ -451,7 +449,7 @@ body:not([data-screen="home"]) .wordmark-mini { opacity: 1; transform: none; }
 .map-key span { display: inline-flex; align-items: center; gap: 7px; }
 .map-key i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-/* ---------- hammer menu ---------- */
+/* ---------- menu ---------- */
 .menu {
   position: fixed; inset: 0; z-index: 65;
   display: none; justify-content: flex-end; align-items: flex-start;
@@ -476,6 +474,19 @@ body:not([data-screen="home"]) .wordmark-mini { opacity: 1; transform: none; }
 .menu-head b { display: block; font-size: 20px; }
 .menu-head span { font-size: 14.5px; font-weight: 500; color: var(--ink-3); }
 .menu-head .icon-btn { margin-left: auto; }
+.seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  background: var(--bg); border-radius: 999px; padding: 4px;
+}
+.seg button {
+  padding: 9px 12px; border-radius: 999px;
+  font-size: 15px; font-weight: 700; color: var(--ink-2);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.seg button.is-on {
+  background: #fff; color: var(--ink);
+  box-shadow: 0 2px 8px rgba(86, 68, 40, 0.10);
+}
 .menu-list { margin-top: 18px; display: grid; }
 .menu-list > button {
   display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left;

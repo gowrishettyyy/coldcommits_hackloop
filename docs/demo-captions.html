@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Campus Pulse — demo captions</title>
+<style>
+  @font-face {
+    font-family: 'Nunito';
+    src: url('../web/fonts/nunito.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', 'Trebuchet MS', sans-serif;
+    color: #2f3a37;
+    background: #f6f2ea;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    width: 210mm; height: 297mm;
+    padding: 17mm 18mm 22mm;
+    display: block;
+    position: relative; overflow: hidden;
+    page-break-after: always;
+    background: #f6f2ea;
+  }
+  .page:last-child { page-break-after: auto; }
+  .page::after {
+    content: "CAMPUS PULSE  ·  DEMO CAPTIONS";
+    position: absolute; left: 18mm; bottom: 8mm;
+    font-size: 7.4pt; font-weight: 700; letter-spacing: .14em; color: #a89f90;
+  }
+  .pageno {
+    position: absolute; right: 18mm; bottom: 8mm;
+    font-size: 8pt; font-weight: 700; color: #a89f90;
+  }
+  .kicker {
+    font-size: 8.6pt; font-weight: 800; letter-spacing: .16em;
+    color: #9a8a6d; text-transform: uppercase; margin: 0 0 6px;
+  }
+  h1 {
+    font-size: 33pt; line-height: .98; letter-spacing: -.035em;
+    margin: 0 0 7px; font-weight: 800;
+  }
+  .lede {
+    font-size: 10.2pt; line-height: 1.45; color: #5d6a66;
+    margin: 0 0 14px; max-width: 150mm;
+  }
+  h2 {
+    font-size: 11.4pt; font-weight: 800; margin: 15px 0 7px;
+    letter-spacing: -.01em;
+  }
+  .box {
+    background: #fffdf9; border: 1px solid #e6dfd1; border-radius: 9px;
+    padding: 11px 13px;
+  }
+  .desc { font-size: 9.5pt; line-height: 1.5; margin: 0; color: #35403c; }
+  .meta { font-size: 8.5pt; color: #8b958f; margin: 7px 0 0; font-weight: 600; }
+  .shots { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  .shots td { vertical-align: top; padding: 6.2px 0; border-bottom: 1px solid #e8e1d4; }
+  .shots tr:last-child td { border-bottom: 0; }
+  .time {
+    width: 15mm; font-size: 9.2pt; font-weight: 800; color: #7d6039;
+    font-variant-numeric: tabular-nums;
+  }
+  .cap { font-size: 9.6pt; font-weight: 700; line-height: 1.35; }
+  .cue { width: 47mm; font-size: 7.9pt; color: #8b958f; font-weight: 600; text-align: right; line-height: 1.35; }
+  .features { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 2px; }
+  .feat {
+    background: #fffdf9; border: 1px solid #e6dfd1; border-radius: 8px;
+    padding: 9px 11px; display: flex; gap: 9px; align-items: baseline;
+  }
+  .num {
+    font-size: 8.2pt; font-weight: 800; color: #b09a78;
+    min-width: 12px; font-variant-numeric: tabular-nums;
+  }
+  .feat b { display: block; font-size: 9.2pt; margin-bottom: 1px; }
+  .feat span.txt { font-size: 8.3pt; line-height: 1.35; color: #5d6a66; font-weight: 600; }
+  ul { margin: 3px 0 0; padding-left: 15px; }
+  li { font-size: 8.7pt; line-height: 1.45; margin-bottom: 2.6px; color: #46524e; }
+  .honest {
+    background: #efe8db; border-radius: 9px; padding: 10px 13px;
+    font-size: 8.4pt; line-height: 1.45; color: #5d6a66; margin-top: 5px;
+  }
+  .honest b { color: #2f3a37; }
+  .cols { display: grid; grid-template-columns: 1.05fr .95fr; gap: 14px; }
+  .sign {
+    position: absolute; left: 18mm; bottom: 14mm;
+    font-size: 9pt; font-weight: 700; color: #9a8a6d;
+  }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <p class="kicker">Campus Pulse · demo kit</p>
+  <h1>Demo video captions<br />&amp; shot list</h1>
+  <p class="lede">A 60-second walkthrough: group size, three preferences, one answer, the live seat map and Ask AI.</p>
+
+  <h2>Video description (paste under the upload)</h2>
+  <div class="box">
+    <p class="desc">Campus Pulse answers the only question that matters at lunch: where do I actually go?
+    Tell it how many of you there are and what you care about — closest, quietest, no queue, or all three —
+    and it names one place, with live free seats, queue wait and walking time. Tap through for the seat map,
+    ghost seats and the rest of campus. Ask it anything in plain language, including why it chose that place.
+    The camera counts seats and throws the frame away; no video ever reaches the browser. Just the answer.</p>
+    <p class="meta">Built with Python, OpenCV and a pre-trained YOLO11 model. Live demo: localhost:3000</p>
+  </div>
+
+  <h2>On-screen captions, in shot order</h2>
+  <table class="shots">
+    <tr><td class="time">0:00</td><td class="cap">Campus Pulse finds you a seat before you start walking.</td><td class="cue">Landing wordmark</td></tr>
+    <tr><td class="time">0:06</td><td class="cap">One to eight people. Tell it the size of your group.</td><td class="cue">Seat numbers 1–8</td></tr>
+    <tr><td class="time">0:11</td><td class="cap">Closest, quietest, no queue — pick one, two, or all three.</td><td class="cue">Multi-select chips</td></tr>
+    <tr><td class="time">0:17</td><td class="cap">One answer, not a directory: the place to go right now.</td><td class="cue">Huge venue name</td></tr>
+    <tr><td class="time">0:23</td><td class="cap">Live seats free, queue wait and walk time.</td><td class="cue">Three big numbers</td></tr>
+    <tr><td class="time">0:29</td><td class="cap">See the room before you walk in: free, taken, held and abandoned.</td><td class="cue">Seat map + legend</td></tr>
+    <tr><td class="time">0:36</td><td class="cap">One tap unfolds every other free seat on campus.</td><td class="cue">Arrow expander</td></tr>
+    <tr><td class="time">0:42</td><td class="cap">Everything else hides behind the three-line menu.</td><td class="cue">Hamburger opens</td></tr>
+    <tr><td class="time">0:46</td><td class="cap">Student view, staff view — the same live data.</td><td class="cue">Student / Staff switch</td></tr>
+    <tr><td class="time">0:50</td><td class="cap">Ask in plain language: seats together, queues, quietest time, or why this pick.</td><td class="cue">Ask AI reply</td></tr>
+    <tr><td class="time">0:55</td><td class="cap">Cameras count seats, never people.</td><td class="cue">Privacy line + close</td></tr>
+  </table>
+
+  <div class="sign">Campus Pulse — live seats, queues and calm.</div>
+  <span class="pageno">1</span>
+</section>
+
+<section class="page">
+  <p class="kicker">Campus Pulse · demo kit</p>
+  <h1 style="font-size:23pt;margin-bottom:10px">Feature captions</h1>
+  <p class="lede" style="margin-bottom:10px">Short lines for cards, lower-thirds or voiceover.</p>
+
+  <div class="features">
+    <div class="feat"><span class="num">01</span><div><b>Landing</b><span class="txt">Campus Pulse: live seats, live queues, one calm decision.</span></div></div>
+    <div class="feat"><span class="num">02</span><div><b>Group size</b><span class="txt">From one to eight — it finds a table that actually fits everyone.</span></div></div>
+    <div class="feat"><span class="num">03</span><div><b>Preferences</b><span class="txt">Closest, quietest, no queue. Choose any combination, not just one.</span></div></div>
+    <div class="feat"><span class="num">04</span><div><b>The answer</b><span class="txt">One place, named in huge type, with the reason in a single line.</span></div></div>
+    <div class="feat"><span class="num">05</span><div><b>Live numbers</b><span class="txt">Free seats, queue wait and walk time, straight from the live engine.</span></div></div>
+    <div class="feat"><span class="num">06</span><div><b>Seat map</b><span class="txt">See the room before you walk in: free, taken, held and abandoned seats.</span></div></div>
+    <div class="feat"><span class="num">07</span><div><b>More seats</b><span class="txt">One small arrow opens every other free seat on campus right now.</span></div></div>
+    <div class="feat"><span class="num">08</span><div><b>Menu</b><span class="txt">Map, alerts, staff view and demo controls — behind three quiet lines.</span></div></div>
+    <div class="feat"><span class="num">09</span><div><b>Student / Staff</b><span class="txt">The same live data, explained for students or for the canteen team.</span></div></div>
+    <div class="feat"><span class="num">10</span><div><b>Ask AI</b><span class="txt">Ask for seats together, the shortest queue, or why it picked this place.</span></div></div>
+    <div class="feat"><span class="num">11</span><div><b>Privacy</b><span class="txt">The camera counts seats and discards the frame. No faces, no footage.</span></div></div>
+    <div class="feat"><span class="num">12</span><div><b>Close</b><span class="txt">Campus Pulse: less hunting, more lunch.</span></div></div>
+  </div>
+
+  <div class="cols" style="margin-top:14px">
+    <div>
+      <h2>How to film it</h2>
+      <ul>
+        <li>Keep it under 60 seconds. The landing wordmark needs a beat to assemble — do not rush it.</li>
+        <li>Record at 1440 px wide or more. The type is the product, so let it fill the frame.</li>
+        <li>Show the chip count changing: one chip, then three chips, then the answer. That is the feature.</li>
+        <li>Open the arrow and scroll once, slowly. The list is the proof of depth.</li>
+        <li>End on the Ask AI answer, then tap “Ask why”. That is the moment judges remember.</li>
+      </ul>
+    </div>
+    <div>
+      <h2 style="margin-top:0">Honest note for the description</h2>
+      <div class="honest">
+        Live camera accuracy was measured on a public eatery camera: the model draws real boxes but
+        undercounts a wide, dim, crowded room (about 19% recall with yolo11n at 640, about 58% with
+        yolo11s at 960). At table distance — the setup this demo uses — people are large in frame.
+        <b>Full method and numbers: docs/LIVE_FEED_CHECK.md.</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="sign">Campus Pulse — Nitte · live seats, queues and calm.</div>
+  <span class="pageno">2</span>
+</section>
+
+</body>
+</html>

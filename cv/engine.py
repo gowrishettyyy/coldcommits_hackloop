@@ -60,8 +60,6 @@ class Engine:
         self.tracker_sim, self.tracker_cam = {}, {}
         self.states = {}
         self.live_history = {}      # venue id -> [(campus seconds, free seats)]
-        self.tickets = {}
-        self.claims = {}
         self._last_push = 0.0
 
         for i, venue in enumerate(self.venues):
@@ -435,42 +433,6 @@ class Engine:
     def now_anchor(self, clock):
         self.clock = clock % 86400
         self.wall_start = time.time()
-
-    def join_queue(self, venue_id):
-        venue = next((v for v in self.venues if v["id"] == venue_id), None)
-        if venue is None:
-            raise ValueError(f"unknown venue {venue_id!r}")
-        if venue_id not in self.sim:
-            raise ValueError(f"venue {venue_id!r} has no simulator attached")
-        with self.lock:
-            queue = int(round(self.sim[venue_id].queue))
-            position = queue + 1
-            ticket = {
-                "id": f"{venue_id[:3].upper()}-{int(time.time()) % 10000}",
-                "venue_id": venue_id, "venue": venue["name"],
-                "position": position,
-                "eta_minutes": wait_minutes(queue, venue.get("service_seconds", 45)),
-                "issued": hhmm(self.now()),
-            }
-            self.tickets[ticket["id"]] = ticket
-            return ticket
-
-    def ticket(self, ticket_id):
-        with self.lock:
-            ticket = dict(self.tickets.get(ticket_id) or {})
-            if not ticket:
-                return None
-            moved = len(self.tickets) and int(time.time()) % 7     # simple live demotion
-            ticket["position"] = max(1, ticket["position"] - moved)
-            ticket["eta_minutes"] = round(ticket["position"] * 0.75, 1)
-            ticket["called"] = ticket["position"] <= 1
-            return ticket
-
-    def claim(self, venue_id, seat_id):
-        with self.lock:
-            self.claims[seat_id] = {"venue_id": venue_id, "at": hhmm(self.now())}
-            return {"ok": True, "seat_id": seat_id, "venue_id": venue_id,
-                    "note": "Seat reserved for you for 10 minutes (demo behaviour)."}
 
     def squad_code(self, venue_id, seats):
         """A short code a group can share.

@@ -25,7 +25,6 @@
     chatBusy: false,
     chat: [],
     chips: [],
-    ticket: null,
     squad: null,
     notify: { rush: true, ghost: true },
     tm: {},
@@ -250,9 +249,9 @@
 
     var ready = !!state.groupSize;
     return '<div class="prefs">' +
-      '<p class="field-label">How many of you?<span>1 to 8</span></p>' +
+      '<p class="field-label">How many of you?</p>' +
       '<div class="seat-grid">' + sizes + "</div>" +
-      '<p class="field-label">What matters most?<span>pick as many as you like</span></p>' +
+      '<p class="field-label">What matters most?</p>' +
       '<div class="chip-row">' + matters + "</div>" +
       '<div class="cta-row"><button class="btn primary" data-act="prefs-done"' +
       (ready ? "" : " disabled") + ">Show me where to go</button>" +
@@ -351,8 +350,10 @@
   }
 
   function microLine(v, s) {
+    var bw = v.best_window;
+    var later = bw && bw.in_minutes >= 5 && bw.free > v.free + 1;
     return "Today at " + esc(s.clock.day) + ": " +
-      (v.best_window ? "quietest around <b>" + esc(v.best_window.label) + "</b>" : "steady all day") +
+      (later ? "quietest around <b>" + esc(bw.label) + "</b>" : "steady for the next two hours") +
       " - " + v.counts.busy + " of " + v.capacity + " seats taken right now";
   }
 
@@ -421,10 +422,10 @@
       "</div>" +
       '<div class="cta-row rec-actions">' +
       '<button class="btn primary" data-act="venue" data-id="' + esc(v.id) + '">See the seat map</button>' +
-      '<button class="btn ghost" data-act="chat-open">Ask why</button></div>' +
+      '<button class="btn ghost" data-act="ask-why" data-id="' + esc(v.id) + '">Ask why</button></div>' +
       '<p class="rec-micro" data-live="micro">' + microLine(v, s) + "</p>" +
       '<div class="spark-row">' + sparkline(v.sparkline) +
-      '<span class="note">free seats, last few minutes</span></div>' +
+      '<span class="note">last few minutes</span></div>' +
       '<button class="expand' + (state.showAll ? " is-open" : "") + '" data-act="expand">' +
       '<span class="arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" ' +
       'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -513,14 +514,11 @@
       var ripe = g.state === "probably_free";
       return '<div class="ghost-row">' +
         '<span class="chip ghost">' + esc(g.id) + "</span>" +
-        "<div><div style=\"font-weight:600;color:var(--ink)\">" + (ripe ? "Probably free" : "Held by an item") + "</div>" +
-        '<div class="note">nothing detected near this seat</div></div><div class="spacer"></div>' +
+        "<div><div style=\"font-weight:600;color:var(--ink)\">" + (ripe ? "Probably free" : "Held by an item") + "</div></div>" +
+        '<div class="spacer"></div>' +
         '<div class="ghost-timer' + (ripe ? " ripe" : "") + '">' + Math.floor(g.ghost_age / 60) + "m " +
-        String(Math.floor(g.ghost_age % 60)).padStart(2, "0") + "s</div>" +
-        '<button class="chip' + (ripe ? " is-on" : " dim") + '" data-act="claim" data-id="' + esc(v.id) +
-        '" data-seat="' + esc(g.id) + '">' + (ripe ? "Claim seat" : "Still held") + "</button></div>";
-    }).join("") : '<p class="note">No abandoned seats here. A seat shows up once a bag or laptop sits alone past ' +
-      "the ghost threshold, with a live timer.";
+        String(Math.floor(g.ghost_age % 60)).padStart(2, "0") + "s</div></div>";
+    }).join("") : '<p class="note">No abandoned seats here right now.</p>';
 
     el("venue-body").innerHTML =
       '<button class="back" data-act="nav" data-screen="recommend">&lsaquo; Back</button>' +
@@ -547,14 +545,12 @@
       '<input type="range" min="0" max="' + Math.max(0, v.forecast.length - 1) + '" value="' + index +
       '" data-act="tm" data-id="' + esc(v.id) + '" aria-label="Projected free seats over the next two hours"/>' +
       '<div class="tm-row"><span>' + (point ? esc(point.label) + " - " + point.free + " free seats" : "") +
-      "</span><span>drag to look ahead</span></div>" +
-      '<p class="note">Projection from today\'s observed pattern, not a guarantee. It sharpens as more days ' +
-      "of data accumulate.</p></div>" +
+      "</span><span>drag to look ahead</span></div></div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Seats together</span>' +
-      '<div class="spacer"></div><span class="note">' +
-      (group ? (group.same ? "all at one table" : "closest cluster") : "pick a group size") + "</span></div>" +
-      '<div class="chip-row">' + [1, 2, 3, 4, 5, 6, 8].map(function (n) {
+      (group ? '<div class="spacer"></div><span class="note">' +
+        (group.same ? "all at one table" : "closest cluster") + "</span>" : "") +
+      "</div><div class=\"chip-row\">" + [1, 2, 3, 4, 5, 6, 8].map(function (n) {
         return '<button class="chip' + (state.groupSize === n ? " is-on" : "") + '" data-act="group" data-n="' + n +
           '">' + n + "</button>";
       }).join("") + "</div>" +
@@ -567,8 +563,7 @@
             '">Hold these seats</button></div>'
           : '<p class="note">No ' + state.groupSize + " seats together this moment" +
             (v.best_window ? ". " + esc(v.best_window.label) + " is when it frees up." : ".") + "</p>")
-        : '<p class="note">Groups are matched table by table: one table first, then the tightest cluster of free ' +
-          "seats, so nobody gets scattered across the room.</p>") +
+        : "") +
       "</div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Live seat map</span>' +
@@ -580,23 +575,12 @@
       '<span><i class="bag"></i>bag, owner nearby</span>' +
       '<span><i class="abandoned"></i>abandoned</span>' +
       '<span><i class="camera"></i>seen by a camera</span></div>' +
-      '<p class="note">Tap a seat for its state. ' + (v.camera_seats
-        ? v.live_seats + " of " + v.capacity + " seats are measured by a camera running detection at about " +
-          "2 frames per second."
-        : "No camera is attached to this place yet, so these numbers come from the demo dataset.") +
-      " The floor plan is drawn from seat states, and no camera image ever reaches this page.</p></div>" +
+      '<p class="note">' + (v.camera_seats
+        ? v.live_seats + " of " + v.capacity + " seats are measured by a live camera; no image leaves the device."
+        : "Demo seat data - no camera is attached here.") + "</p></div>" +
 
-      '<div class="panel"><div class="panel-head"><span class="panel-title">Ghost seats</span>' +
-      '<div class="spacer"></div><span class="note">20 min and counting</span></div>' + ghostRows + "</div>" +
-
-      '<div class="panel"><div class="panel-head"><span class="panel-title">Queue</span>' +
-      '<div class="spacer"></div><span class="note">' + v.queue + " waiting - about " +
-      Math.round(v.wait_minutes) + " min</span></div>" +
-      '<p class="note">Wait time is people in line multiplied by the average service time measured at this ' +
-      "counter (" + v.service_seconds + "s per person here). It is an estimate, and it gets better once the " +
-      "counter reports its real speed.</p>" +
-      '<div class="cta-row"><button class="btn primary" data-act="queue" data-id="' + esc(v.id) + '">' +
-      (state.ticket ? "You are in the queue - see ticket" : "Join the queue from here") + "</button></div></div>" +
+      '<div class="panel"><div class="panel-head"><span class="panel-title">Ghost seats</span></div>' +
+      ghostRows + "</div>" +
 
       "";
   }
@@ -607,28 +591,14 @@
   function renderAlerts() {
     var s = state.snap;
     var alerts = s.alerts || [];
-    var ticket = state.ticket;
 
-    var ticketCard = ticket ? '<div class="alert-ticket">' +
-      '<p class="eyebrow" style="font-size:13px;font-weight:500;' +
-      'color:var(--accent);margin:0 0 8px">Your queue ticket - ' + esc(ticket.venue) + "</p>" +
-      '<div style="display:flex;gap:34px;align-items:flex-end;flex-wrap:wrap">' +
-      '<div class="metric is-big"><b>' + ticket.position + "</b><span>people ahead of you</span></div>" +
-      '<div class="metric is-big"><b>' + Math.round(ticket.eta_minutes) + "m</b><span>estimated wait</span></div>" +
-      "</div>" +
-      '<p class="ticket-code">' + esc(ticket.id) + "</p>" +
-      '<p class="note">' + (ticket.called ? "It is your turn - head in now." : "We will ping you when you are next.") +
-      "</p></div>" : "";
-
-    el("alerts-body").innerHTML = ticketCard +
-      '<div class="panel"><div class="panel-head"><span class="panel-title">Notify me about</span>' +
-      '<div class="spacer"></div><span class="note">your choice</span></div><div class="chip-row">' +
+    el("alerts-body").innerHTML =
+      '<div class="panel"><div class="panel-head"><span class="panel-title">Notify me about</span></div>' +
+      '<div class="chip-row">' +
       '<button class="chip' + (state.notify.rush ? " is-on" : "") + '" data-act="pref" data-key="rush">' +
       "Rush about to start</button>" +
       '<button class="chip' + (state.notify.ghost ? " is-on" : "") + '" data-act="pref" data-key="ghost">' +
-      "Ghost seat freed up</button></div>" +
-      '<p class="note">Push notifications on a real deployment. In this demo the alerts simply collect here - ' +
-      "nothing pops up over the screen on its own.</p></div>" +
+      "Ghost seat freed up</button></div></div>" +
 
       '<p class="section-title">Alerts - ' + esc(s.clock.label) + "</p>" +
       (alerts.length ? alerts.map(function (a) {
@@ -671,8 +641,7 @@
 
     el("insights-body").innerHTML =
       '<div class="staff-banner"><span>Staff view</span><span style="font-weight:700;opacity:.85">' +
-      "Counts, timings and staffing only. No camera footage or faces exist anywhere in this view - the app " +
-      "has no way to show them.</span></div>" +
+      "Counts and timings only. No footage, no faces.</span></div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Today at a glance</span></div>' +
       '<div class="stat-grid">' +
@@ -698,8 +667,7 @@
       '<div class="kv"><span>Counters to staff at peak</span><b>' + row.suggested_staff + "</b></div>" +
       '<div class="kv"><span>Food waste risk</span><b>' + esc(row.food_waste_risk) + "</b></div></div>" +
 
-      '<div class="panel"><div class="panel-head"><span class="panel-title">Week at a glance</span>' +
-      '<div class="spacer"></div><span class="note">busier means deeper colour</span></div>' +
+      '<div class="panel"><div class="panel-head"><span class="panel-title">Week at a glance</span></div>' +
       '<div style="display:grid;gap:6px">' + heatWeek + "</div>" +
       '<p class="note">Staffing suggestion: ' + esc(staff.headline.staff_suggestion) + "</p>" +
       '<p class="note">Food prep: ' + esc(staff.headline.waste_note) + "</p></div>" +
@@ -716,7 +684,7 @@
   /* ------------------------------------------------------------------ */
   /* ASK                                                                 */
   /* ------------------------------------------------------------------ */
-  function openChat() {
+  function openChat(question, focusId) {
     closeMenu();
     var panel = el("chat");
     panel.classList.add("is-open");
@@ -724,11 +692,11 @@
     panel.style.display = "block";        // belt and braces: never depend on a single CSS rule
     panel.setAttribute("aria-hidden", "false");
     if (!state.chat.length) {
-      state.chat.push({ role: "bot", text: "Hi! I read the live seat and queue data across campus. Ask me " +
-        "where to eat now, when it gets quiet, or for seats together." });
+      state.chat.push({ role: "bot", text: "Hi! Ask me where to eat, when it gets quiet, or for seats together." });
     }
     renderChat();
-    setTimeout(function () { el("chat-input").focus(); }, 120);
+    if (question) sendChat(question, { venueId: focusId });
+    else setTimeout(function () { el("chat-input").focus(); }, 120);
   }
 
   function closeChat() {
@@ -749,9 +717,11 @@
     el("chat-chips").innerHTML = state.chatBusy ? "" : (state.chips || []).map(function (c) {
       return '<button class="chip" data-act="chat-chip">' + esc(c) + "</button>";
     }).join("");
+    var send = $(".chat-form .send");
+    if (send) send.disabled = state.chatBusy;
   }
 
-  function sendChat(text) {
+  function sendChat(text, opts) {
     var input = el("chat-input");
     var msg = (text || (input ? input.value : "") || "").trim();
     if (!msg) { if (input) input.focus(); return; }
@@ -761,7 +731,9 @@
     state.chips = [];
     state.chatBusy = true;
     renderChat();
-    api("/api/chat", { message: msg }).then(function (res) {
+    var context = { message: msg, group: state.groupSize || null, matters: state.matters.slice() };
+    if (opts && opts.venueId) context.venue_id = opts.venueId;
+    api("/api/chat", context).then(function (res) {
       state.chatBusy = false;
       state.chat.push({ role: "bot", text: (res && res.reply) || "I did not get an answer back." });
       if (res && res.chips) state.chips = res.chips;
@@ -790,7 +762,6 @@
       "which is the intended fallback for the demo.</p>";
 
     el("sheet-body").innerHTML = "<h3>Demo controls</h3>" +
-      '<p class="sub">For you, not for judges. Nothing here changes the detection logic.</p>' +
       '<div class="panel"><div class="panel-head"><span class="panel-title">Computer vision</span>' +
       '<div class="spacer"></div><span class="chip ' + (s.mode === "live-cv" ? "live" : "off") + '">' +
       (s.mode === "live-cv" ? "Live camera" : "Demo data") + "</span></div>" + camRows +
@@ -825,8 +796,6 @@
       '<button class="chip" data-act="scenario" data-s="empty">near empty</button></div>' +
       '<p class="note">\'Ghost seats\' makes people abandon bags more often, so the timer story is easy to ' +
       "show on camera.</p></div>" +
-      '<p class="note" style="text-align:center">UI revision 6 - giant wordmark, hammer menu. If you can read ' +
-      "this line, you are looking at the current files, not a cached copy.</p>" +
       '<button class="btn soft wide" data-act="sheet-close">Close</button>';
   }
 
@@ -896,14 +865,14 @@
     state.menuOpen = true;
     el("menu").classList.add("is-open");
     el("menu").setAttribute("aria-hidden", "false");
-    el("hammer-btn").setAttribute("aria-expanded", "true");
+    el("menu-btn").setAttribute("aria-expanded", "true");
   }
 
   function closeMenu() {
     state.menuOpen = false;
     el("menu").classList.remove("is-open");
     el("menu").setAttribute("aria-hidden", "true");
-    el("hammer-btn").setAttribute("aria-expanded", "false");
+    el("menu-btn").setAttribute("aria-expanded", "false");
   }
 
   function toast(title, body, icon) {
@@ -1000,12 +969,6 @@
     } else if (act === "pref") {
       state.notify[node.dataset.key] = !state.notify[node.dataset.key];
       render();
-    } else if (act === "claim") {
-      api("/api/claim", { venue_id: node.dataset.id, seat_id: node.dataset.seat }).then(function (res) {
-        toast("Seat claimed", (res && res.note) || "Seat held for you.", "&#129681;");
-      }).catch(function (err) {
-        toast("Could not claim that seat", (err && err.message) || "Try again.", "&#9888;");
-      });
     } else if (act === "squad") {
       var venue = state.snap.venues.filter(function (v) { return v.id === node.dataset.id; })[0];
       var grp = findGroup(venue, state.groupSize || 4);
@@ -1018,17 +981,12 @@
       }).catch(function (err) {
         toast("Could not hold those seats", (err && err.message) || "Try again.", "&#9888;");
       });
-    } else if (act === "queue") {
-      api("/api/queue", { venue_id: node.dataset.id }).then(function (res) {
-        state.ticket = res;
-        toast("You joined the queue",
-          "Position " + res.position + " - about " + res.eta_minutes + " min.", "&#127915;");
-        go("alerts");
-      }).catch(function (err) {
-        toast("Could not join the queue", (err && err.message) || "Try again.", "&#9888;");
-      });
     } else if (act === "chat" || act === "chat-open") {
       openChat();
+    } else if (act === "ask-why") {
+      var why = state.snap.venues.filter(function (v) { return v.id === node.dataset.id; })[0];
+      if (why) openChat("Why is " + why.name + " the best place right now?", why.id);
+      else openChat();
     } else if (act === "chat-close") {
       closeChat();
     } else if (act === "chat-chip") {

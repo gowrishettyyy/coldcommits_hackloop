@@ -6,10 +6,7 @@ Routes
   GET  /                      the app
   GET  /api/snapshot          one JSON snapshot
   GET  /api/events            live stream (SSE), pushes a snapshot every second
-  POST /api/chat              {"message": "..."}
-  POST /api/queue             {"venue_id": "..."}          -> queue ticket
-  GET  /api/queue/<id>        ticket status
-  POST /api/claim             {"venue_id": ..., "seat_id": ...}
+  POST /api/chat              {"message": "...", "group": 4, "matters": [...]}
   POST /api/squad             {"venue_id": ..., "seats": [...]}
   POST /api/config            {"speed": 30, "scenario": "ghost", "day": "Tue"}
   GET  /api/health
@@ -103,10 +100,6 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/events":
             return self._stream(query.get("group", [None])[0])
 
-        if path.startswith("/api/queue/"):
-            ticket = self.engine.ticket(path.rsplit("/", 1)[-1])
-            return self._json(ticket or {"error": "no such ticket"}, 200 if ticket else 404)
-
         return self._static(path)
 
     def do_POST(self):
@@ -124,21 +117,17 @@ class Handler(BaseHTTPRequestHandler):
     def _post(self, path, data):
         if path == "/api/chat":
             snap = self.engine.snapshot()
-            return self._json(answer(data.get("message", ""), snap))
-
-        if path == "/api/queue":
-            venue_id = data.get("venue_id")
-            if not venue_id:
-                return self._json({"error": "venue_id is required"}, 400)
+            group = data.get("group")
             try:
-                return self._json(self.engine.join_queue(venue_id))
-            except Exception as exc:
-                return self._json({"error": str(exc)}, 400)
-
-        if path == "/api/claim":
-            if not data.get("venue_id") or not data.get("seat_id"):
-                return self._json({"error": "venue_id and seat_id are required"}, 400)
-            return self._json(self.engine.claim(data.get("venue_id"), data.get("seat_id")))
+                group = int(group) if group else None
+            except (TypeError, ValueError):
+                group = None
+            return self._json(answer(
+                data.get("message", ""), snap,
+                group=group,
+                matters=data.get("matters") or [],
+                focus=data.get("venue_id"),
+            ))
 
         if path == "/api/squad":
             if not data.get("venue_id"):

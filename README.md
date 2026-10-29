@@ -106,8 +106,10 @@ wordmark that assembles letter by letter, then two questions — how many of you
 (1–8) and what matters (closest / quietest / no queue, pick any combination).
 The answer screen gives you one place, its name in huge type, one line of facts,
 the numbers, a "See the seat map" button, and a small arrow that unfolds the rest
-of campus. There is no top navigation bar: the **hammer** in the top right opens
-Home, Map, Alerts, Staff view, demo controls and the student/staff switch. The
+of campus. There is no top navigation bar: the **hamburger** in the top right opens
+Home, Map, Alerts, Staff view, demo controls and the student/staff switch. There is
+no seat-claiming or queue-joining flow; the app only tells you what is free and
+where to go. The
 Nunito font is bundled in `web/fonts`, so the type survives a bad wifi day.
 
 ## Live camera accuracy check
@@ -123,7 +125,7 @@ live hop: `mode: live-cv`, frames arriving, counts updating. Read the honest
 write-up, videos and reproduce commands in
 [docs/LIVE_FEED_CHECK.md](docs/LIVE_FEED_CHECK.md).
 
-## Controls for the demo (hammer menu, top right)
+## Controls for the demo (hamburger menu, top right)
 
 * campus clock speed: 1× → 120× (at 30× a whole campus day plays in ~30 minutes, lunch peak in ~5)
 * jump the clock: 08:00 / 11:30 / 13:00 / 17:30 / 19:30 — go straight to the lunch crush
@@ -152,6 +154,9 @@ web/                    the app (HTML + CSS + JS, no build step)
 web/fonts/              Nunito, bundled so the big type works offline
 tools/live_feed_check.py  run the detector on a public live camera, save proof video + counts
 tools/score_live_frames.py compare models on saved frames, render an annotated clip
+tools/make_demo_pdf.py  rebuild the demo-caption PDF from docs/demo-captions.html
+docs/demo-captions.html   source for the demo captions (print-styled, bundled font)
+docs/CampusPulse_Demo_Captions.pdf  video description, shot list, feature captions
 docs/LIVE_FEED_CHECK.md   the live-feed accuracy test, with numbers and limits
 ```
 
@@ -162,7 +167,9 @@ verified, honest limits, judge script, 24 viva questions with answers, a two-day
 troubleshooting). [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) is the demo-video shot
 list, including how to film the table with your phone. Both are also shipped as
 [docs/CampusPulse_Handbook.pdf](docs/CampusPulse_Handbook.pdf); rebuild it with
-`pip install fpdf2 && python docs/build_pdf.py`.
+`pip install fpdf2 && python docs/build_pdf.py`. The demo-video captions are in
+[docs/CampusPulse_Demo_Captions.pdf](docs/CampusPulse_Demo_Captions.pdf); rebuild
+them with `python tools/make_demo_pdf.py`.
 
 ## Limits we state up front
 
