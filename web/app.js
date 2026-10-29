@@ -17,8 +17,12 @@
     mode: "student",
     venueId: null,
     groupSize: null,
-    matters: "closest",
-    prefsOpen: true,
+    matters: ["closest"],
+    started: false,
+    showAll: false,
+    lastAt: {},
+    menuOpen: false,
+    chatBusy: false,
     chat: [],
     chips: [],
     ticket: null,
@@ -105,18 +109,36 @@
     return "";
   }
 
+  function wants(key) { return state.matters.indexOf(key) >= 0; }
+
+  /* Every selected preference counts. "Closest and quietest" must not silently
+     behave like "closest", which is what a chain of sort() calls did. */
+  function scoreVenue(v) {
+    var score = v.free * 0.6;
+    if (wants("closest")) score -= v.walk_min * 3.0;
+    if (wants("quiet")) {
+      score -= (LEVEL_RANK[v.crowd_level] || 0) * 6;
+      score -= (1 - (v.free / Math.max(1, v.capacity))) * 4;
+    }
+    if (wants("queue")) score -= v.wait_minutes * 1.6 + v.queue * 0.3;
+    return score;
+  }
+
   function sortedVenues(list) {
-    var copy = list.slice();
-    if (state.matters === "closest") copy.sort(function (a, b) { return a.walk_min - b.walk_min; });
-    if (state.matters === "quiet") {
-      copy.sort(function (a, b) {
-        return (LEVEL_RANK[a.crowd_level] - LEVEL_RANK[b.crowd_level]) || (b.free - a.free);
-      });
+    return list.slice().sort(function (a, b) {
+      return (scoreVenue(b) - scoreVenue(a)) || (b.free - a.free) || (a.walk_min - b.walk_min);
+    });
+  }
+
+  function bestVenue() {
+    var s = state.snap;
+    if (!s) return null;
+    var pool = s.venues.filter(function (v) { return v.kind !== "Library"; });
+    if (state.groupSize) {
+      var fits = pool.filter(function (v) { return findGroup(v, state.groupSize); });
+      if (fits.length) pool = fits;
     }
-    if (state.matters === "queue") {
-      copy.sort(function (a, b) { return (a.wait_minutes - b.wait_minutes) || (b.free - a.free); });
-    }
-    return copy;
+    return sortedVenues(pool)[0] || null;
   }
 
   /* ------------------------------------------------------------------ */
@@ -212,27 +234,28 @@
   /* HOME                                                                */
   /* ------------------------------------------------------------------ */
   function prefsPanel() {
-    var sizes = [1, 2, 3, 4, 5, 6, 8].map(function (n) {
-      return '<button class="chip' + (state.groupSize === n ? " is-on" : "") +
-        '" data-act="group" data-n="' + n + '">' + n + "</button>";
+    var sizes = [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) {
+      return '<button class="seat-num' + (state.groupSize === n ? " is-on" : "") +
+        '" data-act="group" data-n="' + n + '" aria-pressed="' + (state.groupSize === n) + '">' + n + "</button>";
     }).join("");
     var matters = [
       ["closest", "Closest to me"],
       ["quiet", "Quietest"],
       ["queue", "No queue"],
     ].map(function (pair) {
-      return '<button class="chip' + (state.matters === pair[0] ? " is-on" : "") +
-        '" data-act="matters" data-key="' + pair[0] + '">' + pair[1] + "</button>";
+      var on = wants(pair[0]);
+      return '<button class="chip' + (on ? " is-on" : "") + '" data-act="matters" data-key="' +
+        pair[0] + '" aria-pressed="' + on + '">' + pair[1] + "</button>";
     }).join("");
 
     var ready = !!state.groupSize;
-    return '<div class="panel prefs">' +
-      "<h2>Where are you going?</h2>" +
-      '<p class="lead">Two quick taps and we compare every canteen, cafe and reading hall around you.</p>' +
-      '<p class="field-label">How many of you?</p><div class="chip-row">' + sizes + "</div>" +
-      '<p class="field-label">What matters most?</p><div class="chip-row">' + matters + "</div>" +
-      '<div class="cta-row"><button class="btn primary' + (ready ? "" : " dim") + '" data-act="prefs-done"' +
-      (ready ? "" : ' disabled style="opacity:.5"') + ">Show me where to go</button>" +
+    return '<div class="prefs">' +
+      '<p class="field-label">How many of you?<span>1 to 8</span></p>' +
+      '<div class="seat-grid">' + sizes + "</div>" +
+      '<p class="field-label">What matters most?<span>pick as many as you like</span></p>' +
+      '<div class="chip-row">' + matters + "</div>" +
+      '<div class="cta-row"><button class="btn primary" data-act="prefs-done"' +
+      (ready ? "" : " disabled") + ">Show me where to go</button>" +
       '<button class="btn ghost" data-act="prefs-skip">Just browsing</button></div>' +
       "</div>";
   }
@@ -281,72 +304,139 @@
       '<span class="row-chev">&rsaquo;</span></button>';
   }
 
-  function recommendation() {
-    var s = state.snap;
-    var rec = s.recommendation;
-    if (!rec) return "";
-    var venue = s.venues.filter(function (v) { return v.id === rec.venue_id; })[0];
-    if (!venue) return "";
-
-    // Preference-aware: if the user asked for a group size that the engine's pick
-    // cannot seat together, fall back to the best venue that can.
-    if (state.groupSize) {
-      var fits = s.venues.filter(function (v) { return findGroup(v, state.groupSize); });
-      if (fits.length && !fits.some(function (v) { return v.id === rec.venue_id; })) {
-        fits.sort(function (a, b) { return (b.free - a.free) || (a.walk_min - b.walk_min); });
-        venue = fits[0];
-      }
-    }
-
-    var reason = venue.id === rec.venue_id
-      ? rec.reason
-      : "Closest match to what you asked for: " + venue.free + " seats free, " + venue.walk_min + " min walk.";
-    if (state.matters === "queue" && venue.queue === 0) reason = "No queue at the counter right now - walk straight in.";
-    if (state.matters === "quiet") reason = "The calm end of campus right now at " + LEVEL[venue.crowd_level] + " crowd level.";
-
-    return '<div class="hero">' +
-      '<p class="eyebrow">Go here now - ' + esc(s.clock.label) + "</p>" +
-      "<h3>" + esc(venue.name) + "</h3><p>" + esc(reason) + "</p>" +
-      '<div class="hero-stats">' +
-      '<div class="metric is-big"><b>' + venue.free + "</b><span>seats free</span></div>" +
-      '<div class="metric is-big"><b>' + (venue.queue ? Math.round(venue.wait_minutes) + "m" : "0m") +
-      "</b><span>queue wait</span></div>" +
-      '<div class="metric is-big"><b>' + venue.walk_min + "m</b><span>walk away</span></div>" +
-      "</div>" +
-      '<div class="cta-row">' +
-      '<button class="btn primary" data-act="venue" data-id="' + esc(venue.id) + '">See the seat map</button>' +
-      '<button class="btn ghost" data-act="chat-open">Ask why</button>' +
-      "</div></div>";
+  function sparkline(points) {
+    if (!points || points.length < 3) return "";
+    var W = 300, H = 40, top = 6;
+    var max = Math.max.apply(null, points.concat([1]));
+    var d = points.map(function (p, i) {
+      var x = (i / (points.length - 1)) * W;
+      var y = H - top - (p / max) * (H - top * 2);
+      return (i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1);
+    }).join(" ");
+    return '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<path d="' + d + '" fill="none" stroke="#c3ab84" stroke-width="2.4" ' +
+      'stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
 
-  function renderHome() {
-    var s = state.snap;
-    if (state.prefsOpen) {
-      el("home-body").innerHTML = prefsPanel();
-      return;
-    }
+  function prefLabel() {
+    var names = { closest: "closest", quiet: "quietest", queue: "no queue" };
+    return state.matters.map(function (k) { return names[k]; }).filter(Boolean).join(" + ") || "anything";
+  }
 
-    var totalFree = s.venues.reduce(function (a, v) { return a + v.free; }, 0);
-    var totalSeats = s.venues.reduce(function (a, v) { return a + v.capacity; }, 0);
+  function moreSection() {
+    var s = state.snap;
     var food = s.venues.filter(function (v) { return v.kind !== "Library"; });
     var study = s.venues.filter(function (v) { return v.kind === "Library"; });
-    var summary = (state.groupSize ? "For " + state.groupSize + " of you" : "For anyone") + " - " +
-      { closest: "closest first", quiet: "quietest first", queue: "no queue first" }[state.matters];
+    var totalFree = s.venues.reduce(function (a, v) { return a + v.free; }, 0);
+    var totalSeats = s.venues.reduce(function (a, v) { return a + v.capacity; }, 0);
 
-    el("home-body").innerHTML =
-      recommendation() +
-      '<div class="hero-stats">' +
-      '<div class="metric is-big"><b>' + totalFree + "</b><span>free seats on campus right now</span></div>" +
-      '<div class="metric"><b>' + pct(totalFree, totalSeats) + "%</b><span>of " + totalSeats + " seats</span></div>" +
-      "</div>" +
-      '<div class="toolbar"><span>' + summary + "</span><div class=\"spacer\"></div>" +
-      '<button class="link" data-act="prefs-open">Change</button></div>' +
-      ghostSection(s.venues) +
+    return '<div class="more">' +
+      '<div class="panel"><div class="panel-head"><span class="panel-title">Campus right now</span>' +
+      '<div class="spacer"></div><span class="note">' + esc(s.clock.label) + " - " +
+      pct(totalFree, totalSeats) + "% free</span></div>" +
+      '<div class="rec-stats" style="margin:4px 0 0">' +
+      '<div class="metric"><b>' + totalFree + "</b><span>free seats</span></div>" +
+      '<div class="metric"><b>' + s.venues.length + "</b><span>places live</span></div>" +
+      "</div></div>" +
       '<p class="section-title">Food and drink near you</p>' +
       sortedVenues(food).map(venueCard).join("") +
       (study.length ? '<p class="section-title">Study spaces</p>' + sortedVenues(study).map(venueCard).join("") : "") +
-      '<p class="note" style="margin-top:34px">Cameras see the room; this app never does. Frames are read on the ' +
-      "device and thrown away in the same instant, so only seat states, timers and counts reach this screen.</p>";
+      ghostSection(s.venues) +
+      '<div class="more-actions">' +
+      '<button class="btn soft" data-act="nav" data-screen="map">Campus map</button>' +
+      '<button class="btn soft" data-act="nav" data-screen="alerts">Alerts</button></div>' +
+      '<p class="note" style="margin-top:26px">Cameras see the room; this app never does. Frames are read on the ' +
+      "device and thrown away in the same instant, so only seat states, timers and counts reach this screen.</p>" +
+      "</div>";
+  }
+
+  function microLine(v, s) {
+    return "Today at " + esc(s.clock.day) + ": " +
+      (v.best_window ? "quietest around <b>" + esc(v.best_window.label) + "</b>" : "steady all day") +
+      " - " + v.counts.busy + " of " + v.capacity + " seats taken right now";
+  }
+
+  /* The snapshot arrives every second. Replacing the whole subtree each time
+     made the page repaint (and re-run entrance animations) at 1 Hz, which read
+     as blinking. The skeleton is built once; only the numbers move. */
+  function patchRecommend(holder, v, bits) {
+    var s = state.snap;
+    var line = holder.querySelector('[data-live="line"]');
+    if (line) line.textContent = bits.join(" - ");
+    var free = holder.querySelector('[data-live="free"]');
+    if (free) free.textContent = v.free;
+    var wait = holder.querySelector('[data-live="wait"]');
+    if (wait) wait.textContent = v.queue ? Math.round(v.wait_minutes) + "m" : "0m";
+    var walk = holder.querySelector('[data-live="walk"]');
+    if (walk) walk.textContent = v.walk_min + "m";
+    var micro = holder.querySelector('[data-live="micro"]');
+    if (micro) micro.innerHTML = microLine(v, s);
+
+    var row = holder.querySelector(".spark-row");
+    if (row) {
+      var fresh = sparkline(v.sparkline);
+      var old = row.querySelector("svg");
+      if (old && fresh) old.outerHTML = fresh;
+      else if (fresh) row.insertAdjacentHTML("afterbegin", fresh);
+    }
+    var more = holder.querySelector(".more");
+    if (more) more.outerHTML = moreSection();
+  }
+
+  function renderRecommend() {
+    var s = state.snap;
+    if (!s) return;
+    var v = bestVenue();
+    if (!v) {
+      el("recommend-body").innerHTML = '<div class="err">No places are open right now.</div>';
+      return;
+    }
+
+    var group = state.groupSize ? findGroup(v, state.groupSize) : null;
+    var bits = [v.free + " seats free"];
+    bits.push(v.queue ? "queue " + Math.round(v.wait_minutes) + " min" : "no queue");
+    bits.push(v.walk_min + " min walk");
+    if (state.groupSize) {
+      bits.push(group ? "table for " + state.groupSize : "no table for " + state.groupSize + " yet");
+    }
+
+    var holder = el("recommend-body");
+    var key = [v.id, state.groupSize || 0, state.showAll ? 1 : 0,
+      state.matters.join(","), s.clock.day].join("|");
+    if (holder.dataset.key === key) {
+      patchRecommend(holder, v, bits);
+      return;
+    }
+    holder.dataset.key = key;
+    holder.innerHTML = '<div class="rec">' +
+      '<p class="rec-kicker">' + (state.groupSize ? "For " + state.groupSize + (state.groupSize > 1 ? " of you" : "") : "For you") +
+      " - " + esc(prefLabel()) + "</p>" +
+      '<h1 class="rec-name">' + esc(v.name) + "</h1>" +
+      '<p class="rec-line" data-live="line">' + esc(bits.join(" - ")) + "</p>" +
+      '<div class="rec-stats">' +
+      '<div class="metric"><b data-live="free">' + v.free + "</b><span>seats free</span></div>" +
+      '<div class="metric"><b data-live="wait">' + (v.queue ? Math.round(v.wait_minutes) + "m" : "0m") +
+      "</b><span>queue wait</span></div>" +
+      '<div class="metric"><b data-live="walk">' + v.walk_min + "m</b><span>walk</span></div>" +
+      "</div>" +
+      '<div class="cta-row rec-actions">' +
+      '<button class="btn primary" data-act="venue" data-id="' + esc(v.id) + '">See the seat map</button>' +
+      '<button class="btn ghost" data-act="chat-open">Ask why</button></div>' +
+      '<p class="rec-micro" data-live="micro">' + microLine(v, s) + "</p>" +
+      '<div class="spark-row">' + sparkline(v.sparkline) +
+      '<span class="note">free seats, last few minutes</span></div>' +
+      '<button class="expand' + (state.showAll ? " is-open" : "") + '" data-act="expand">' +
+      '<span class="arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 5v14M6 13l6 6 6-6"/></svg></span>' +
+      (state.showAll ? "Hide the rest of campus" : "Click to see more available seats on campus right now") +
+      "</button>" +
+      (state.showAll ? moreSection() : "") +
+      "</div>";
+  }
+
+  function renderHome() {
+    el("home-body").innerHTML = prefsPanel();
   }
 
   /* ------------------------------------------------------------------ */
@@ -433,7 +523,7 @@
       "the ghost threshold, with a live timer.";
 
     el("venue-body").innerHTML =
-      '<button class="back" data-act="nav" data-screen="home">&lsaquo; Back to all places</button>' +
+      '<button class="back" data-act="nav" data-screen="recommend">&lsaquo; Back</button>' +
       '<div class="venue-head"><div>' +
       '<p class="eyebrow">' + esc(v.kind) + " - " + esc(v.area) + "</p>" +
       "<h2>" + esc(v.name) + "</h2>" +
@@ -627,8 +717,10 @@
   /* ASK                                                                 */
   /* ------------------------------------------------------------------ */
   function openChat() {
+    closeMenu();
     var panel = el("chat");
     panel.classList.add("is-open");
+    document.body.classList.add("chat-open");
     panel.style.display = "block";        // belt and braces: never depend on a single CSS rule
     panel.setAttribute("aria-hidden", "false");
     if (!state.chat.length) {
@@ -642,6 +734,7 @@
   function closeChat() {
     var panel = el("chat");
     panel.classList.remove("is-open");
+    document.body.classList.remove("chat-open");
     panel.style.display = "none";
     panel.setAttribute("aria-hidden", "true");
   }
@@ -651,9 +744,9 @@
     log.innerHTML = state.chat.map(function (m) {
       var text = esc(m.text).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
       return '<div class="msg ' + (m.role === "me" ? "me" : "bot") + '">' + text + "</div>";
-    }).join("");
+    }).join("") + (state.chatBusy ? '<div class="msg bot typing">...</div>' : "");
     log.scrollTop = log.scrollHeight;
-    el("chat-chips").innerHTML = (state.chips || []).map(function (c) {
+    el("chat-chips").innerHTML = state.chatBusy ? "" : (state.chips || []).map(function (c) {
       return '<button class="chip" data-act="chat-chip">' + esc(c) + "</button>";
     }).join("");
   }
@@ -661,19 +754,20 @@
   function sendChat(text) {
     var input = el("chat-input");
     var msg = (text || (input ? input.value : "") || "").trim();
-    if (!msg) {
-      state.chat.push({ role: "bot", text: "Type a question, or tap one of the suggestions below." });
-      renderChat();
-      return;
-    }
+    if (!msg) { if (input) input.focus(); return; }
+    if (state.chatBusy) return;
     if (input) input.value = "";
     state.chat.push({ role: "me", text: msg });
+    state.chips = [];
+    state.chatBusy = true;
     renderChat();
     api("/api/chat", { message: msg }).then(function (res) {
-      state.chat.push({ role: "bot", text: (res && res.reply) || "..." });
+      state.chatBusy = false;
+      state.chat.push({ role: "bot", text: (res && res.reply) || "I did not get an answer back." });
       if (res && res.chips) state.chips = res.chips;
       renderChat();
     }).catch(function (err) {
+      state.chatBusy = false;
       state.chat.push({ role: "bot", text: "I could not reach the engine (" +
         ((err && err.message) || "no answer") + "). Is the run.py window still open?" });
       renderChat();
@@ -731,8 +825,8 @@
       '<button class="chip" data-act="scenario" data-s="empty">near empty</button></div>' +
       '<p class="note">\'Ghost seats\' makes people abandon bags more often, so the timer story is easy to ' +
       "show on camera.</p></div>" +
-      '<p class="note" style="text-align:center">UI revision 4 - soft cream. If you can read this line, you are ' +
-      "looking at the current files, not a cached copy.</p>" +
+      '<p class="note" style="text-align:center">UI revision 6 - giant wordmark, hammer menu. If you can read ' +
+      "this line, you are looking at the current files, not a cached copy.</p>" +
       '<button class="btn soft wide" data-act="sheet-close">Close</button>';
   }
 
@@ -744,40 +838,72 @@
     var s = state.snap;
 
     document.body.dataset.mode = state.mode;
-    el("campus-clock").textContent = s.clock.label;
-    var pill = el("source-pill");
-    pill.innerHTML = "<i></i>" + (s.mode === "live-cv" ? "Live camera" : "Demo data");
-    pill.classList.toggle("is-live", s.mode === "live-cv");
-    pill.title = s.mode === "live-cv"
-      ? "Seat states are coming from a real camera running detection right now"
-      : "No camera is attached, so every venue is generated from the demo dataset";
+    document.body.dataset.screen = state.screen;
 
     var alerts = (s.alerts || []).length;
-    el("tab-alerts-count").textContent = alerts ? alerts : "";
+    el("tab-alerts-count").textContent = alerts ? String(alerts) : "";
+    el("menu-status").textContent = (s.mode === "live-cv" ? "Live camera detection" : "Demo data") +
+      " - " + s.clock.label + " - " + s.clock.speed + "x";
 
-    $(".screen").forEach(function (node) {
-      node.classList.toggle("is-active", node.id === "screen-" + state.screen);
-    });
-    $(".tab").forEach(function (tab) {
-      tab.classList.toggle("is-active", tab.dataset.screen === state.screen);
-    });
     el("mode-switch").querySelectorAll("button").forEach(function (b) {
       b.classList.toggle("is-on", b.dataset.mode === state.mode);
     });
     if (state.dragging) return;
 
-    if (state.screen === "home") renderHome();
-    if (state.screen === "map") renderMap();
-    if (state.screen === "venue") renderVenue();
-    if (state.screen === "alerts") renderAlerts();
-    if (state.screen === "insights") renderInsights();
+    if (state.screen === "home") {
+      if (!el("home-body").childElementCount) renderHome();
+    }
+    if (state.screen === "recommend") renderRecommend();
+    if (state.screen === "map" && due("map", 2000)) renderMap();
+    if (state.screen === "venue" && due("venue", 2500)) renderVenue();
+    if (state.screen === "alerts" && due("alerts", 2000)) renderAlerts();
+    if (state.screen === "insights" && due("insights", 3000)) renderInsights();
     if (state.sheetOpen) renderSheet();
+  }
+
+  function due(key, ms) {
+    var now = Date.now();
+    if (!state.lastAt[key] || now - state.lastAt[key] >= ms) {
+      state.lastAt[key] = now;
+      return true;
+    }
+    return false;
+  }
+
+  function showScreen() {
+    document.body.dataset.screen = state.screen;
+    $(".screen").forEach(function (node) {
+      var on = node.id === "screen-" + state.screen;
+      if (on && !node.classList.contains("is-active")) {
+        node.classList.add("is-active", "enter");
+        window.setTimeout(function () { node.classList.remove("enter"); }, 520);
+      } else if (!on) {
+        node.classList.remove("is-active", "enter");
+      }
+    });
   }
 
   function go(screen) {
     state.screen = screen;
+    state.lastAt = {};
+    closeMenu();
+    showScreen();
     window.scrollTo({ top: 0, behavior: "smooth" });
     render();
+  }
+
+  function openMenu() {
+    state.menuOpen = true;
+    el("menu").classList.add("is-open");
+    el("menu").setAttribute("aria-hidden", "false");
+    el("hammer-btn").setAttribute("aria-expanded", "true");
+  }
+
+  function closeMenu() {
+    state.menuOpen = false;
+    el("menu").classList.remove("is-open");
+    el("menu").setAttribute("aria-hidden", "true");
+    el("hammer-btn").setAttribute("aria-expanded", "false");
   }
 
   function toast(title, body, icon) {
@@ -801,7 +927,7 @@
         try { applySnapshot(JSON.parse(ev.data)); } catch (err) { /* ignore a bad frame */ }
       });
       es.onerror = function () {
-        el("source-pill").innerHTML = "<i></i>reconnecting...";
+        el("menu-status").textContent = "Reconnecting to the engine...";
       };
     } catch (err) {
       showError();
@@ -820,29 +946,54 @@
     var act = node.dataset.act;
 
     if (act === "nav") {
+      if (node.dataset.screen === "home") {
+        state.started = false;
+        state.showAll = false;
+        el("home-body").innerHTML = "";
+      }
       go(node.dataset.screen);
+    } else if (act === "brand") {
+      state.started = false;
+      state.showAll = false;
+      el("home-body").innerHTML = "";
+      go("home");
+    } else if (act === "menu") {
+      openMenu();
+    } else if (act === "menu-close") {
+      closeMenu();
+    } else if (act === "expand") {
+      state.showAll = !state.showAll;
+      renderRecommend();
     } else if (act === "venue") {
       state.venueId = node.dataset.id;
       go("venue");
     } else if (act === "group") {
       state.groupSize = Number(node.dataset.n) || null;
-      render();
+      if (state.screen === "home") {
+        renderHome();
+      } else {
+        state.lastAt = {};
+        render();
+      }
     } else if (act === "matters") {
-      state.matters = node.dataset.key;
-      render();
+      var key = node.dataset.key;
+      var at = state.matters.indexOf(key);
+      if (at >= 0) state.matters.splice(at, 1);
+      else state.matters.push(key);
+      renderHome();
     } else if (act === "prefs-done") {
       if (!state.groupSize) return;
-      state.prefsOpen = false;
-      render();
+      state.started = true;
+      state.showAll = false;
+      go("recommend");
     } else if (act === "prefs-skip") {
-      state.prefsOpen = false;
-      render();
-    } else if (act === "prefs-open") {
-      state.prefsOpen = true;
-      render();
+      state.started = true;
+      state.showAll = true;
+      go("recommend");
     } else if (act === "mode") {
       state.mode = node.dataset.mode;
-      go(state.mode === "staff" ? "insights" : "home");
+      closeMenu();
+      go(state.mode === "staff" ? "insights" : (state.started ? "recommend" : "home"));
     } else if (act === "insight") {
       state.insightVenue = node.dataset.id;
       renderInsights();
@@ -891,6 +1042,7 @@
           (seat.camera ? " - watched by a camera" : " - from the simulator"), "&#129681;");
       }
     } else if (act === "sheet") {
+      closeMenu();
       state.sheetOpen = true;
       el("sheet").classList.add("is-open");
       renderSheet();
@@ -934,8 +1086,12 @@
       el("sheet").classList.remove("is-open");
     }
   });
+  el("menu").addEventListener("click", function (ev) {
+    if (ev.target === el("menu")) closeMenu();
+  });
   document.addEventListener("keydown", function (ev) {
     if (ev.key !== "Escape") return;
+    if (state.menuOpen) closeMenu();
     if (state.sheetOpen) {
       state.sheetOpen = false;
       el("sheet").classList.remove("is-open");
@@ -943,5 +1099,26 @@
     closeChat();
   });
 
+  /* The giant wordmark assembles letter by letter. Same font, same colours,
+     just a soft rise so it does not appear all at once. */
+  function splitMega() {
+    var node = el("mega");
+    if (!node) return;
+    var index = 0;
+    $(".mega-line", node).forEach(function (line) {
+      var text = line.getAttribute("data-text") || line.textContent;
+      line.textContent = "";
+      text.split("").forEach(function (ch) {
+        var span = document.createElement("span");
+        span.className = "ch";
+        span.style.setProperty("--i", index);
+        index += 1;
+        span.textContent = ch;
+        line.appendChild(span);
+      });
+    });
+  }
+
+  splitMega();
   connect();
 })();

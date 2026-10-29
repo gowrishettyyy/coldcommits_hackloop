@@ -8,3 +8,6 @@ yolo*.pt
 *.mp4
 !data/*.mp4
 operator.mp4
+
+# local test evidence (capture video, frames, screenshots) - not site code
+artifacts/

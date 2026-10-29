@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#f6f2ea" />
+<meta name="ui-revision" content="6 - giant wordmark, hammer menu, multi-preference" />
+<meta name="description" content="Live free seats, ghost seats and queue times for campus canteens and cafes, computed on the camera device. Only counts are stored - never footage." />
+<title>Campus Pulse</title>
+<!-- Nunito is bundled in web/fonts, so the big type still looks right offline
+     and on machines with no rounded system font. -->
+<link rel="preload" href="/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body data-mode="student" data-screen="home">
+
+<header class="chrome" id="chrome">
+  <button class="wordmark-mini" data-act="brand" aria-label="Campus Pulse home">Campus Pulse</button>
+  <button class="hammer" data-act="menu" aria-label="Open menu" aria-expanded="false" id="hammer-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.4 4.6h8.2a2.2 2.2 0 0 1 2.2 2.2v2.1a2.2 2.2 0 0 1-2.2 2.2H9.4z"/>
+      <path d="M12.1 11.1 4.2 19a1.9 1.9 0 0 0 2.6 2.6l7.9-7.9"/>
+    </svg>
+  </button>
+</header>
+
+<main class="viewport">
+  <section class="screen is-active" id="screen-home">
+    <div class="landing">
+      <h1 class="mega" id="mega" aria-label="Campus Pulse">
+        <span class="mega-line" data-text="Campus">Campus</span>
+        <span class="mega-line" data-text="Pulse">Pulse</span>
+      </h1>
+      <div class="home-body" id="home-body"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-recommend"><div id="recommend-body"></div></section>
+  <section class="screen" id="screen-map"><div id="map-body"></div></section>
+  <section class="screen" id="screen-venue"><div id="venue-body"></div></section>
+  <section class="screen" id="screen-alerts"><div id="alerts-body"></div></section>
+  <section class="screen" id="screen-insights"><div id="insights-body"></div></section>
+</main>
+
+<button class="ask-fab" data-act="chat" aria-label="Ask CampusPulse">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-8.5 8.5c-1.3 0-2.6-.3-3.7-.9L3 21l1.4-5.1A8.5 8.5 0 1 1 21 12z"/></svg>
+  <span>Ask</span>
+</button>
+
+<div class="menu" id="menu" aria-hidden="true">
+  <div class="menu-card" role="dialog" aria-label="Everything else">
+    <div class="menu-head">
+      <div><b>Campus Pulse</b><span>everything else, in one place</span></div>
+      <button class="icon-btn" data-act="menu-close" aria-label="Close menu">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="seg" id="mode-switch" role="group" aria-label="Who is looking">
+      <button class="is-on" data-act="mode" data-mode="student">Student</button>
+      <button data-act="mode" data-mode="staff">Staff</button>
+    </div>
+    <nav class="menu-list" id="menu-list">
+      <button data-act="nav" data-screen="home"><span>Home</span><em>start again</em></button>
+      <button data-act="nav" data-screen="map"><span>Map</span><em>where everything is</em></button>
+      <button data-act="nav" data-screen="alerts"><span>Alerts<em class="count" id="tab-alerts-count"></em></span><em>nothing pops up on its own</em></button>
+      <button data-act="nav" data-screen="insights"><span>Staff view</span><em>peaks and staffing</em></button>
+      <button data-act="sheet"><span>Demo controls</span><em>camera, clock, scenarios</em></button>
+      <button data-act="chat-open"><span>Ask Campus Pulse</span><em>answers from live data</em></button>
+    </nav>
+    <p class="menu-foot" id="menu-status">Connecting to the engine...</p>
+  </div>
+</div>
+
+<div class="chat" id="chat" aria-label="Ask CampusPulse" aria-hidden="true">
+  <div class="chat-head">
+    <div><b>Ask Campus Pulse</b><span>answers from the live campus data</span></div>
+    <div class="spacer"></div>
+    <button class="icon-btn" data-act="chat-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="chat-log" id="chat-log"></div>
+  <div class="chat-chips" id="chat-chips"></div>
+  <form class="chat-form" id="chat-form" onsubmit="return false">
+    <input id="chat-input" placeholder="Where should I eat right now?" autocomplete="off" aria-label="Your question" />
+    <button type="submit" class="send" aria-label="Send">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg>
+    </button>
+  </form>
+</div>
+
+<div class="sheet" id="sheet" aria-hidden="true"><div class="sheet-panel" id="sheet-body"></div></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -5,6 +5,8 @@ Nothing here knows about seats, venues or the app. It uses YOLO, which is
 already trained on 80 everyday objects, so we train nothing. Ultralytics is
 imported lazily so the rest of the project still runs if it is not installed.
 """
+import os
+
 # COCO class numbers that matter to us
 PERSON = 0
 CHAIR = 56
@@ -14,23 +16,29 @@ ITEMS = {24, 26, 28, 63, 73}
 _model = None
 
 
-def load_model(path="yolo11n.pt"):
+def load_model(path=None):
+    path = path or os.environ.get("CAMPUSPULSE_MODEL", "yolo11n.pt")
     """Downloads the weights the first time (~6 MB), then reuses them.
     Imported here (not at module top) so the app still starts if the AI
     packages are not installed yet - the simulator covers that case."""
     global _model
     if _model is None:
         try:
+            import torch
             from ultralytics import YOLO
         except ImportError as exc:
             raise RuntimeError(
                 "ultralytics is not installed. Run: pip install -r requirements.txt "
                 "(the simulator still works without it)") from exc
+        # Some virtualised CPUs trap (SIGFPE) inside oneDNN's convolution kernels.
+        # Seat counting needs about two frames per second, so the portable CPU path
+        # is the right trade: a little slower, and it cannot take the demo down.
+        torch.backends.mkldnn.enabled = False
         _model = YOLO(path)
     return _model
 
 
-def detect(frame, conf=0.30, imgsz=480):
+def detect(frame, conf=0.30, imgsz=640):
     """Returns {"people": [...], "items": [...], "chairs": [...]}.
     Boxes are [x1, y1, x2, y2] in pixels of `frame`."""
     result = load_model()(frame, conf=conf, imgsz=imgsz, verbose=False)[0]

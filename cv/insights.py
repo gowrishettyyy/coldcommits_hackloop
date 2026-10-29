@@ -59,6 +59,40 @@ def _best(snapshot, group=None):
     return max(pool, key=lambda v: v["free"] - v["walk_min"] * 1.4 - v["queue"] * 0.9)
 
 
+def _free_group(v, n):
+    """Find n free seats together in the snapshot's own seat list.
+
+    The assistant used to look for v['group'], which is only present when the
+    engine was asked for a group size. /api/chat never asks, so every "4 seats
+    together" question answered "no" even when whole tables were empty.
+    """
+    seats = [s for s in (v.get("seats") or [])
+             if s.get("state") in ("free", "probably_free")]
+    if len(seats) < n:
+        return None
+    by_table = {}
+    for s in seats:
+        by_table.setdefault(s.get("table"), []).append(s)
+    for table, group in by_table.items():
+        if len(group) >= n:
+            return {"seat_ids": [s["id"] for s in group[:n]],
+                    "quality": "all at one table", "table": table}
+    return {"seat_ids": [s["id"] for s in seats[:n]],
+            "quality": "next to each other", "table": None}
+
+
+def _best_group(snapshot, n):
+    fits = []
+    for v in _food(snapshot):
+        group = _free_group(v, n)
+        if group:
+            fits.append((v, group))
+    if not fits:
+        return None, None
+    return max(fits, key=lambda pair: pair[0]["free"] - pair[0]["walk_min"] * 1.4
+                                           - pair[0]["queue"] * 0.9)
+
+
 def _fmt_venue(v, group=None):
     bits = [
         f"**{v['name']}** — {v['free']} of {v['capacity']} seats free",
@@ -67,8 +101,9 @@ def _fmt_venue(v, group=None):
         f"{v['walk_min']} min walk",
     ]
     line = " · ".join(bits)
-    if group and v.get("group"):
-        line += f"\nSeats {', '.join(v['group']['seat_ids'])} are free together ({v['group']['quality']})."
+    if group:
+        line += (f"\nSeats {', '.join(group['seat_ids'])} are free together "
+                 f"({group['quality']}).")
     return line
 
 
@@ -87,18 +122,18 @@ def answer(question, snapshot):
 
     # ---- seats together -------------------------------------------------- #
     if group and (_has(q, "together", "group", "seats", "friends", "of us") or "we need" in q):
-        best = _best(snapshot, group=True)
+        best, seats = _best_group(snapshot, group)
         if not best:
             tightest = max(_food(snapshot), key=lambda v: v["free"])
             return {"reply": f"No venue has {group} free seats together this second. "
                              f"{tightest['name']} has the most free seats overall "
                              f"({tightest['free']}). Try again in a few minutes or take two tables.",
                     "chips": CHIPS}
-        return {"reply": f"Yes — {group} seats together at {_fmt_venue(best, group)}\n"
-                         f"Best window is around {best['best_window']['label']} "
-                         f"({best['best_window']['free']} free)." if best.get("best_window")
-                         else f"Yes — {group} seats together at {_fmt_venue(best, group)}",
-                "chips": CHIPS, "venue_id": best["id"]}
+        reply = f"Yes — {group} seats together at {_fmt_venue(best, seats)}"
+        if best.get("best_window"):
+            reply += (f"\nIf you can wait, {best['best_window']['label']} is quieter "
+                      f"({best['best_window']['free']} free).")
+        return {"reply": reply, "chips": CHIPS, "venue_id": best["id"]}
 
     # ---- where / what to eat --------------------------------------------- #
     if _has(q, "where", "eat", "food", "lunch", "dinner", "hungry", "recommend", "now", "go"):

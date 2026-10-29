@@ -76,10 +76,15 @@ class Handler(BaseHTTPRequestHandler):
         ext = os.path.splitext(target)[1].lower()
         with open(target, "rb") as fh:
             body = fh.read()
+        # The bundled font is content-addressed by name and never changes, so let
+        # the browser cache it. Re-fetching a webfont on every page load is what
+        # makes a font-display swap flash the type in and out.
+        cached = rel.replace(os.sep, "/").startswith("fonts/")
         self.send_response(200)
         self.send_header("Content-Type", CONTENT_TYPES.get(ext, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control",
+                         "public, max-age=31536000, immutable" if cached else "no-store")
         self.end_headers()
         self.wfile.write(body)
 

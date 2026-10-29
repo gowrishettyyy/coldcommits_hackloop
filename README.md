@@ -14,7 +14,7 @@ footage, because nothing that looks like a frame ever leaves the detection proce
 | The four camera seats in the demo | **Live CV** from your webcam, updated live in the UI |
 | Every other venue | Simulated crowd flow, injected at the *same* interface as a camera |
 | Best-time forecast, weekly heatmap, staff numbers | Computed from a simulated 14-day history (no canteen permission yet) |
-| Accuracy percentage | Not claimed. We have no labelled canteen footage yet, so we report none. |
+| Live-feed count accuracy | Measured against a public live eatery camera: reliable boxes, but badly undercounts a wide, dim, crowded room (19% recall at `yolo11n`/640, 58% at `yolo11s`/960). Full numbers and method: [docs/LIVE_FEED_CHECK.md](docs/LIVE_FEED_CHECK.md). Seat-zone accuracy is not claimed. |
 
 The simulator deliberately does **not** write app data directly. It emits fake person/item boxes
 and the very same tracking logic turns those into seat states, so the pipeline you demo on your
@@ -99,7 +99,31 @@ webcam / CCTV ──► YOLO (persons, chairs, bags) ──► seat zones ──
 * **Honest provenance**: every seat in the JSON says whether it is camera-backed (`"live": true`)
   or simulated, and the header pill says `live CV` or `simulated campus`.
 
-## Controls for the demo (⚙ in the app)
+## What the app looks like now
+
+Open the site and the first screen is the brand: a giant, soft 3D **Campus Pulse**
+wordmark that assembles letter by letter, then two questions — how many of you
+(1–8) and what matters (closest / quietest / no queue, pick any combination).
+The answer screen gives you one place, its name in huge type, one line of facts,
+the numbers, a "See the seat map" button, and a small arrow that unfolds the rest
+of campus. There is no top navigation bar: the **hammer** in the top right opens
+Home, Map, Alerts, Staff view, demo controls and the student/staff switch. The
+Nunito font is bundled in `web/fonts`, so the type survives a bad wifi day.
+
+## Live camera accuracy check
+
+We pointed the same model at a **public live camera of a busy open-air eatery**
+(110 seconds, 24 sampled frames, night, wide shot) and hand-counted six frames.
+Mean absolute error was 25 people for `yolo11n` at 640, 16 for `yolo11s` at 640
+and 13 for `yolo11s` at 960; recall went from 19% to 58%. The boxes it draws are
+real people — it simply misses the small, dark, overlapping ones in a crowd. On a
+phone held above one table (the setup the demo uses) people are large in frame,
+which is the case this app is actually designed for. The app also confirmed the
+live hop: `mode: live-cv`, frames arriving, counts updating. Read the honest
+write-up, videos and reproduce commands in
+[docs/LIVE_FEED_CHECK.md](docs/LIVE_FEED_CHECK.md).
+
+## Controls for the demo (hammer menu, top right)
 
 * campus clock speed: 1× → 120× (at 30× a whole campus day plays in ~30 minutes, lunch peak in ~5)
 * jump the clock: 08:00 / 11:30 / 13:00 / 17:30 / 19:30 — go straight to the lunch crush
@@ -125,6 +149,10 @@ cv/insights.py          the assistant, answered from live data
 data/venues.json        the venues + floor plans (rename these for your campus)
 data/cameras.json       which camera watches which seats, and the zone boxes
 web/                    the app (HTML + CSS + JS, no build step)
+web/fonts/              Nunito, bundled so the big type works offline
+tools/live_feed_check.py  run the detector on a public live camera, save proof video + counts
+tools/score_live_frames.py compare models on saved frames, render an annotated clip
+docs/LIVE_FEED_CHECK.md   the live-feed accuracy test, with numbers and limits
 ```
 
 ## Documents

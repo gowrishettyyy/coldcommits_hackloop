@@ -186,10 +186,13 @@ class CameraManager:
                 info = dict(worker.latest)
             out.append({
                 "id": cam_id,
-                "source": str(worker.source),
+                # never echo a signed stream URL (it carries a short-lived token)
+                "source": str(worker.source).split("?")[0],
                 "ready": bool(info.get("ready")),
                 "frames": int(info.get("frames", 0)),
                 "fps": info.get("fps", 0.0),
+                "people": len(info.get("people") or []),
+                "queue": info.get("queue_count"),
                 "error": info.get("error"),
                 "uptime_s": round(time.time() - worker.started_at, 1) if worker.started_at else 0,
             })
