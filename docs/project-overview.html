@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Campus Pulse — project overview</title>
+<style>
+  @font-face {
+    font-family: 'Nunito';
+    src: url('../web/fonts/nunito.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', 'Trebuchet MS', sans-serif;
+    color: #2f3a37; background: #f6f2ea;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .page {
+    width: 210mm; height: 297mm; padding: 15mm 16mm 17mm;
+    position: relative; overflow: hidden; page-break-after: always;
+    background: #f6f2ea;
+  }
+  .page:last-child { page-break-after: auto; }
+  .page::after {
+    content: "CAMPUS PULSE  ·  PROJECT OVERVIEW";
+    position: absolute; left: 16mm; bottom: 8mm;
+    font-size: 6.8pt; font-weight: 700; letter-spacing: .14em; color: #a89f90;
+  }
+  .pageno { position: absolute; right: 16mm; bottom: 8mm; font-size: 7.6pt; font-weight: 700; color: #a89f90; }
+  .kicker { font-size: 8pt; font-weight: 800; letter-spacing: .16em; color: #9a8a6d; text-transform: uppercase; margin: 0 0 5px; }
+  h1 { font-size: 27pt; line-height: 1.02; letter-spacing: -.035em; margin: 0 0 6px; font-weight: 800; }
+  h2 { font-size: 13.2pt; font-weight: 800; margin: 0 0 6px; letter-spacing: -.01em; }
+  h3 { font-size: 10.2pt; font-weight: 800; margin: 9px 0 2px; }
+  p { font-size: 8.9pt; line-height: 1.45; margin: 0 0 6px; color: #46524e; }
+  .lede { font-size: 10.2pt; color: #5d6a66; line-height: 1.45; margin-bottom: 10px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
+  .box { background: #fffdf9; border: 1px solid #e6dfd1; border-radius: 8px; padding: 9px 11px; }
+  .box p:last-child { margin-bottom: 0; }
+  .tint { background: #efe8db; border: 0; }
+  .feat { border-bottom: 1px solid #e8e1d4; padding: 6px 0 7px; }
+  .feat:last-child { border-bottom: 0; }
+  .feat b { font-size: 9.6pt; }
+  .feat p { margin: 2px 0 0; font-size: 8.5pt; line-height: 1.42; }
+  .tag { display: inline-block; font-size: 6.9pt; font-weight: 800; letter-spacing: .06em;
+         text-transform: uppercase; color: #7d6039; background: #efe4d2;
+         border-radius: 999px; padding: 2px 7px; margin-left: 5px; vertical-align: 1px; }
+  table { width: 100%; border-collapse: collapse; margin: 4px 0 8px; }
+  th { text-align: left; font-size: 7.6pt; letter-spacing: .06em; text-transform: uppercase;
+       color: #8b958f; border-bottom: 1.5px solid #ddd3c2; padding: 4px 5px; }
+  td { font-size: 8.2pt; line-height: 1.38; padding: 4.5px 5px; border-bottom: 1px solid #e8e1d4; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td b { font-weight: 800; }
+  ul { margin: 3px 0 7px; padding-left: 14px; }
+  li { font-size: 8.6pt; line-height: 1.42; margin-bottom: 2.2px; color: #46524e; }
+  .big { display: flex; gap: 8px; margin: 8px 0 10px; }
+  .big div { flex: 1; background: #fffdf9; border: 1px solid #e6dfd1; border-radius: 8px; padding: 8px 10px; }
+  .big b { display: block; font-size: 17pt; line-height: 1.05; }
+  .big span { font-size: 7.6pt; color: #8b958f; font-weight: 600; }
+  .foot { position: absolute; left: 16mm; bottom: 13mm; font-size: 8.4pt; font-weight: 700; color: #9a8a6d; }
+  .small { font-size: 7.8pt; color: #8b958f; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<section class="page">
+  <p class="kicker">Campus Pulse · project overview</p>
+  <h1>Campus Pulse</h1>
+  <p class="lede">A live campus food-and-seat decision tool. It turns a camera view of a
+  canteen into free-seat counts, queue estimates and one clear answer: where to go right now.</p>
+
+  <div class="big">
+    <div><b>5</b><span>venues live</span></div>
+    <div><b>192</b><span>seats modelled</span></div>
+    <div><b>1–8</b><span>group sizes</span></div>
+    <div><b>3</b><span>preferences, any mix</span></div>
+  </div>
+
+  <h2>The problem</h2>
+  <p>At lunch, students walk between canteens without knowing which one has a free table, a long
+  queue or a quiet corner. Existing menus show food, not capacity. Campus Pulse answers the only
+  question that matters before you start walking: <b>where do I actually go?</b></p>
+
+  <h2>What it does</h2>
+  <p>The user picks a group size (1–8) and any combination of <b>closest</b>, <b>quietest</b> and
+  <b>no queue</b>. The app names one venue in large type and shows live free seats, queue wait,
+  walking time, a seat map, ghost seats and the rest of campus. A built-in assistant answers
+  plain-language questions — including why it chose that place — from the same live data.</p>
+
+  <h2>How the live data is produced</h2>
+  <div class="two">
+    <div class="box">
+      <h3>With a camera</h3>
+      <p>A worker reads frames at about 2 fps, runs a pre-trained YOLO11 model, matches people and
+      left-behind items to marked seat zones, and stores only seat states and timers. The frame is
+      discarded immediately. No image, face or person box is ever sent to the browser.</p>
+    </div>
+    <div class="box">
+      <h3>Without a camera</h3>
+      <p>A campus simulator drives every venue from realistic daily curves, service speeds and
+      abandonment behaviour, so all screens work on a laptop with nothing plugged in. Camera-backed
+      seats are labelled separately in the snapshot.</p>
+    </div>
+  </div>
+
+  <h2>Design principles</h2>
+  <ul>
+    <li><b>One answer, not a directory.</b> The first screen after the questions is a single venue, not a list.</li>
+    <li><b>The type is the product.</b> Huge rounded Nunito wordmark and venue names; everything secondary stays small.</li>
+    <li><b>Nothing pops up uninvited.</b> Alerts collect on an Alerts screen; the user opens them.</li>
+    <li><b>No reservations or queue tickets.</b> The current app informs and recommends; it does not claim seats or join queues.</li>
+    <li><b>Privacy is structural.</b> The browser API has no route that can return a frame.</li>
+  </ul>
+
+  <h2>Technology</h2>
+  <table>
+    <tr><th>Layer</th><th>Stack</th><th>Responsibility</th></tr>
+    <tr><td><b>Frontend</b></td><td>Plain HTML, CSS, JavaScript; bundled Nunito woff2</td><td>Landing, recommendation, seat map, alerts, staff view, chat; no build step.</td></tr>
+    <tr><td><b>Server</b></td><td>Python standard library HTTP server + Server-Sent Events</td><td>Static files, JSON snapshot each second, chat endpoint, config, ticket-free API.</td></tr>
+    <tr><td><b>Engine</b></td><td>Python: clock, simulators, trackers, forecasts</td><td>One source of truth for seat states, queues, alerts and recommendations.</td></tr>
+    <tr><td><b>Vision</b></td><td>OpenCV + Ultralytics YOLO11 (COCO), PyAV for streams</td><td>People, chairs and left-behind items to seat zones to states.</td></tr>
+  </table>
+
+  <div class="foot">Campus Pulse — live seats, queues and calm.</div>
+  <span class="pageno">1</span>
+</section>
+
+<!-- PAGE 2 -->
+<section class="page">
+  <p class="kicker">Feature reference · 1 of 2</p>
+  <h1 style="font-size:21pt">Student experience</h1>
+  <p class="lede">Every screen a student sees, in the order they see it.</p>
+
+  <div class="feat"><b>01 · Landing wordmark</b><span class="tag">brand</span>
+    <p>A giant “Campus Pulse” in the same rounded font, with a soft 3D shadow. The letters rise into
+    place once on load; the animation does not replay on data updates. The only other element is the
+    hamburger menu in the top right.</p></div>
+
+  <div class="feat"><b>02 · Group size, 1–8</b><span class="tag">question</span>
+    <p>Eight large circular buttons select the number of people. The choice feeds the recommendation,
+    the table-fit search and every answer from the assistant.</p></div>
+
+  <div class="feat"><b>03 · Multi-select preferences</b><span class="tag">question</span>
+    <p>Closest to me, Quietest and No queue can be selected independently or together. All selected
+    preferences are scored in one ranking function — selecting three does not silently behave like
+    selecting only the last one.</p></div>
+
+  <div class="feat"><b>04 · Actions</b><span class="tag">question</span>
+    <p>“Show me where to go” requires a group size and opens the recommendation. “Just browsing”
+    opens the same screen with the rest of campus already unfolded.</p></div>
+
+  <div class="feat"><b>05 · One recommendation</b><span class="tag">answer</span>
+    <p>The winning venue is named in display type. A small line above states the group size and the
+    exact preference combination that produced it. Below, one fact line combines free seats, queue
+    state and walking time.</p></div>
+
+  <div class="feat"><b>06 · Three live metrics</b><span class="tag">answer</span>
+    <p>Seats free, queue wait and walk time are updated in place every second, without rebuilding the
+    page or replaying animations. The queue wait uses people in line × average service seconds.</p></div>
+
+  <div class="feat"><b>07 · Why this pick</b><span class="tag">answer</span>
+    <p>“Ask why” opens the assistant and asks about this venue with its ID. The reply explains the
+    seat count, walk, queue, which preferences matched, a genuinely later quiet window and the next
+    two alternatives.</p></div>
+
+  <div class="feat"><b>08 · Today’s context</b><span class="tag">answer</span>
+    <p>A one-line history (“quietest around …” only when that time is actually later and quieter, or
+    “steady for the next two hours”) plus a sparkline of free seats over the last few minutes.</p></div>
+
+  <div class="feat"><b>09 · More seats on campus</b><span class="tag">answer</span>
+    <p>One arrow expands the rest: campus totals, every food venue sorted by the same preferences,
+    study spaces, ghost seats, and shortcuts to the map and alerts. The arrow can hide it again.</p></div>
+
+  <div class="feat"><b>10 · Venue detail</b><span class="tag">venue</span>
+    <p>Capacity ring, live queue and seats-taken stats, a two-hour forecast chart with a draggable
+    time slider, a group-seat finder with “Hold these seats” sharing code, the full seat map and
+    ghost-seat timers. No seat-claiming or queue-joining action exists.</p></div>
+
+  <div class="feat"><b>11 · Seat map</b><span class="tag">venue</span>
+    <p>Seats are coloured by state: free, someone sitting, bag with owner nearby, abandoned, and
+    camera-observed. Tables are drawn from the floor plan. Group seats are circled. Tapping a seat
+    reports its state; no camera image is involved.</p></div>
+
+  <div class="feat"><b>12 · Ghost seats</b><span class="tag">venue</span>
+    <p>When an item is seen with no person for longer than the venue’s threshold (15–25 minutes;
+    20 minutes for most venues), the seat changes from held to probably free. A live timer shows how
+    long the item has been alone. This is information only — the user cannot claim it.</p></div>
+
+  <div class="foot">Campus Pulse — feature reference</div>
+  <span class="pageno">2</span>
+</section>
+
+<!-- PAGE 3 -->
+<section class="page">
+  <p class="kicker">Feature reference · 2 of 2</p>
+  <h1 style="font-size:21pt">Everything else</h1>
+  <p class="lede">The screens behind the hamburger, the assistant, and the operational view.</p>
+
+  <div class="feat"><b>13 · Hamburger menu</b><span class="tag">navigation</span>
+    <p>Three lines in the top right open Home, Map, Alerts, Staff view, Demo controls and Ask Campus
+    Pulse. The Student/Staff segmented switch sits at the top of this menu. There is no other top
+    navigation, clock or status chrome on the page.</p></div>
+
+  <div class="feat"><b>14 · Campus map</b><span class="tag">map</span>
+    <p>A schematic campus with live pins showing each venue’s free-seat count and a colour for crowd
+    level (quiet, filling, busy, packed). A nearest-first list below gives walk time, distance,
+    opening hours and free seats.</p></div>
+
+  <div class="feat"><b>15 · Alerts</b><span class="tag">alerts</span>
+    <p>Computed alerts appear in one place: go-now advice, a venue about to fill up, and a seat whose
+    item has been abandoned. The user chooses whether rush or ghost alerts are enabled. No browser
+    notification fires on its own.</p></div>
+
+  <div class="feat"><b>16 · Student / Staff switch</b><span class="tag">roles</span>
+    <p>Switches the same live snapshot between the student recommendation and the canteen team’s
+    operational view. The data is identical; only the explanation and metrics change.</p></div>
+
+  <div class="feat"><b>17 · Staff view</b><span class="tag">staff</span>
+    <p>Meals served today (estimated), queueing minutes avoided, peak window, a peak-hours bar chart
+    per venue, busiest and quietest hour, counters to staff at peak, food-waste risk, a week heatmap
+    and a detection-layer panel showing cameras attached, frames processed and seats backed by real
+    detection.</p></div>
+
+  <div class="feat"><b>18 · Ask Campus Pulse</b><span class="tag">assistant</span>
+    <p>A local rules engine over the live snapshot — no cloud call, no API key. It understands group
+    seats together, named venues, quietest time, queue length, ghost seats, general “where should I
+    eat” and “why this place”. It receives group size, selected preferences and an optional focus
+    venue, so its answer agrees with the screen. Replies render bold, line breaks and a typing state;
+    suggested-question chips are clickable and double-sends are blocked.</p></div>
+
+  <div class="feat"><b>19 · Demo controls</b><span class="tag">demo</span>
+    <p>Camera status, campus clock speed (1×–120×), day selection, jump-to times (08:00, 13:00, 17:30,
+    19:30) and scenarios: normal day, lunch rush, ghost seats, near empty. Intended for the operator,
+    not the judge-facing flow.</p></div>
+
+  <div class="feat"><b>20 · Live camera mode</b><span class="tag">vision</span>
+    <p>Attach a webcam, a phone stream or a recorded clip. The worker reads at 1–3 fps, detects
+    people, chairs and items, and maps boxes to seat zones. Camera-backed seat counts replace the
+    simulator for those seats; the rest stay simulated. An operator preview and an annotated proof
+    recording are optional and never reach the browser.</p></div>
+
+  <div class="feat"><b>21 · Privacy by construction</b><span class="tag">privacy</span>
+    <p>Frames are processed on the device and dropped in the same loop. Snapshots contain only seat
+    states, counts, queue lengths, forecasts and timers. The API has no endpoint that can return an
+    image, a crop or a person box.</p></div>
+
+  <h2 style="margin-top:12px">The five venues in the current dataset</h2>
+  <table>
+    <tr><th>Venue</th><th>Type</th><th>Seats</th><th>Walk</th><th>Open</th></tr>
+    <tr><td><b>Nitte Main Canteen</b></td><td>Canteen</td><td>48</td><td>2 min</td><td>07:30–21:30</td></tr>
+    <tr><td><b>Annapoorna Veg</b></td><td>Restaurant</td><td>32</td><td>6 min</td><td>11:00–22:30</td></tr>
+    <tr><td><b>Juice Junction</b></td><td>Cafe</td><td>12</td><td>4 min</td><td>08:00–21:00</td></tr>
+    <tr><td><b>Food Court, Block C</b></td><td>Food court</td><td>40</td><td>8 min</td><td>08:00–20:30</td></tr>
+    <tr><td><b>Central Library Reading Hall</b></td><td>Library</td><td>60</td><td>3 min</td><td>08:00–23:00</td></tr>
+  </table>
+
+  <div class="foot">Campus Pulse — feature reference</div>
+  <span class="pageno">3</span>
+</section>
+
+<!-- PAGE 4 -->
+<section class="page">
+  <p class="kicker">Under the hood · 1 of 2</p>
+  <h1 style="font-size:21pt">How it is built</h1>
+
+  <h2>Data flow</h2>
+  <div class="box" style="font-size:8.6pt; line-height:1.55">
+    <b>Camera frames</b> to YOLO11 detection (people / chairs / items) to seat-zone overlap to
+    <b>SeatTracker</b> (free, busy, held, probably free, unknown, timers)<br />
+    <b>Simulator</b> to the same tracker shape for every seat without a live camera<br />
+    <b>Engine</b> merges camera + simulator, then computes forecast, crowd level, queue, alerts and
+    staff stats, producing a <b>snapshot</b> (JSON) served over <b>SSE / REST</b> to the <b>browser</b>.<br />
+    <b>Snapshot</b> to <b>rules assistant</b> to chat reply. No frame ever enters this path.
+  </div>
+
+  <h2 style="margin-top:12px">Engine responsibilities</h2>
+  <ul>
+    <li>Owns one campus clock that starts at 08:00 and can run at 1×–120× real time.</li>
+    <li>Runs one simulator and one tracker per venue; camera seats are owned by real detections when a camera is delivering frames.</li>
+    <li>Computes free seats, crowd level (quiet / filling / busy / packed), queue length, wait minutes, forecasts, quietest window, ghosts, alerts and staff metrics.</li>
+    <li>Resyncs the world after a time jump so stale ghost timers and sparklines cannot leak across the jump.</li>
+    <li>Exposes one snapshot shape consumed by every screen and by the assistant.</li>
+  </ul>
+
+  <h2>Vision and seat states</h2>
+  <table>
+    <tr><th>State</th><th>Meaning</th></tr>
+    <tr><td><b>free</b></td><td>No person or item detected in the seat zone.</td></tr>
+    <tr><td><b>busy</b></td><td>A person intersects the seat zone.</td></tr>
+    <tr><td><b>held</b></td><td>An item is present but no person; owner may be nearby, timer just started.</td></tr>
+    <tr><td><b>probably_free</b></td><td>An item alone longer than the venue’s ghost threshold; the app suggests it is abandoned.</td></tr>
+    <tr><td><b>unknown</b></td><td>No camera coverage for that seat; the simulator provides a stand-in.</td></tr>
+  </table>
+  <p>The detector uses COCO class 0 for people, 56 for chairs, and 24/26/28/63/73 for backpack,
+  handbag, suitcase, laptop and book. Confidence is 0.30 at 640 px by default. The model is
+  pre-trained, not fine-tuned on this campus.</p>
+
+  <h2>Forecast, alerts and staff metrics</h2>
+  <div class="two">
+    <div class="box"><h3>Forecast</h3><p>A two-hour projection of free seats from the observed daily
+    pattern and venue popularity. The venue screen lets the user drag through it. It is an estimate,
+    not a reservation.</p></div>
+    <div class="box"><h3>Alerts</h3><p>“Go now” advice from the top recommendation; “about to fill”
+    when the forecast drops sharply within the next 90 minutes; “ghost seat” when an item has been
+    alone past the threshold.</p></div>
+    <div class="box"><h3>Staff</h3><p>Peak occupancy and hour, suggested counters at peak (one per
+    ~14 people per 15 minutes), food-waste risk from the gap between peak and average demand, and
+    estimated meals served.</p></div>
+    <div class="box"><h3>Queue</h3><p>People in the queue area × average service seconds per person.
+    The app states this is an estimate and shows it as information only.</p></div>
+  </div>
+
+  <div class="foot">Campus Pulse — how it is built</div>
+  <span class="pageno">4</span>
+</section>
+
+<!-- PAGE 5 -->
+<section class="page">
+  <p class="kicker">Operating the demo · 1 of 2</p>
+  <h1 style="font-size:21pt">Files, start and API</h1>
+
+  <h2>Files</h2>
+  <table>
+    <tr><td><b>run.py</b></td><td>Starts engine, cameras and HTTP server.</td></tr>
+    <tr><td><b>server.py</b></td><td>Static files, snapshot, SSE, chat, squad code, config, health.</td></tr>
+    <tr><td><b>cv/engine.py</b></td><td>Clock, merge, forecast, recommendation, alerts, staff, snapshot.</td></tr>
+    <tr><td><b>cv/detection.py</b></td><td>YOLO wrapper and operator annotation.</td></tr>
+    <tr><td><b>cv/camera.py</b></td><td>Camera workers; the only code that touches pixels.</td></tr>
+    <tr><td><b>cv/tracker.py</b></td><td>Seat states, ghost timers, group finder, queue math.</td></tr>
+    <tr><td><b>cv/simulator.py</b></td><td>Campus crowd simulation.</td></tr>
+    <tr><td><b>cv/insights.py</b></td><td>The assistant, answered from the live snapshot.</td></tr>
+    <tr><td><b>web/</b></td><td>HTML, CSS, JS and bundled font; no framework, no build.</td></tr>
+    <tr><td><b>data/venues.json</b></td><td>Venues, floor plans, capacities and hours.</td></tr>
+    <tr><td><b>data/cameras.json</b></td><td>Camera-to-seat zones.</td></tr>
+  </table>
+
+  <h2>Start</h2>
+  <div class="box" style="font-size:8.5pt; line-height:1.6">
+    <b>python run.py</b> — simulator only, opens http://localhost:8000<br />
+    <b>python run.py --camera 0 --show</b> — laptop webcam, operator preview with boxes<br />
+    <b>python run.py --camera http://192.168.1.7:8080/video --show</b> — phone as a live camera<br />
+    <b>python run.py --camera clip.mp4 --record proof.mp4</b> — recorded clip and proof video<br />
+    <b>python run.py --port 3000 --no-browser</b> — the port used by the hosted preview<br />
+    <b>CAMPUSPULSE_MODEL=yolo11s.pt python run.py --camera 0</b> — larger model, slower and more accurate
+  </div>
+  <p style="margin-top:6px">Dependencies: <b>pip install -r requirements.txt</b> (OpenCV, Ultralytics,
+  NumPy). The web app and API use only the Python standard library.</p>
+
+  <h2>API</h2>
+  <table>
+    <tr><th>Route</th><th>Purpose</th></tr>
+    <tr><td><b>GET /</b></td><td>The application.</td></tr>
+    <tr><td><b>GET /api/snapshot</b></td><td>One full snapshot; optional ?group=N.</td></tr>
+    <tr><td><b>GET /api/events</b></td><td>Server-Sent Events; pushes a snapshot every second.</td></tr>
+    <tr><td><b>POST /api/chat</b></td><td>message, group, matters, optional venue_id; returns reply + chips.</td></tr>
+    <tr><td><b>POST /api/squad</b></td><td>Short share code for a group’s seats.</td></tr>
+    <tr><td><b>POST /api/config</b></td><td>speed, scenario, day, time.</td></tr>
+    <tr><td><b>GET /api/health</b></td><td>Readiness and campus clock.</td></tr>
+  </table>
+  <p class="small">There is deliberately no seat-claim route and no queue-ticket route in the current build.</p>
+
+  <h2>What has been verified</h2>
+  <ul>
+    <li>The app runs end to end on the simulator, and on a live public camera feed with
+    <b>mode: live-cv</b>, frames processed and counts updating in the interface.</li>
+    <li>All screens render in headless Chromium with no console errors; landing, multi-select,
+    recommendation, seat map, menu, chat and staff view were exercised.</li>
+    <li>The assistant answers group-size, venue-name, queue, quietest-time, ghost-seat and
+    “why this pick” questions from live data.</li>
+    <li>Live-feed counting was measured against hand-counted frames on a public eatery camera.</li>
+  </ul>
+
+  <div class="foot">Campus Pulse — how to run it</div>
+  <span class="pageno">5</span>
+</section>
+
+<!-- PAGE 6 -->
+<section class="page">
+  <p class="kicker">Operating the demo · 2 of 2</p>
+  <h1 style="font-size:21pt">Accuracy and limits</h1>
+
+  <h2>Measured accuracy, stated honestly</h2>
+  <div class="box tint">
+    <p>On a wide, dim, crowded open-air eatery at night, the pre-trained model drew real boxes but
+    badly undercounted people. Mean absolute error was <b>25</b> people with yolo11n at 640, <b>16</b>
+    with yolo11s at 640 and <b>13</b> with yolo11s at 960; recall rose from about <b>19%</b> to
+    <b>58%</b>. This is a wide-shot limitation, not a seat-state failure.</p>
+    <p>The intended demo is a phone or webcam above one table, where people are large in frame. The
+    app is designed for that distance; it does not claim accurate counting in a crowded hall.</p>
+  </div>
+
+  <h2>Limits</h2>
+  <ul>
+    <li>One camera sees one area; a large hall needs multiple cameras and zones.</li>
+    <li>Occlusion, dim light and shallow angles reduce accuracy; the queue estimate assumes steady service speed.</li>
+    <li>Forecasts and the staff heatmap currently come from simulated history until real days of data exist.</li>
+    <li>No seat reservations, no queue joining, no payments and no accounts in this build.</li>
+    <li>Privacy: no footage, faces or person boxes are stored or exposed; only aggregate seat states leave the process.</li>
+  </ul>
+
+  <h2>Current UI decisions</h2>
+  <ul>
+    <li>No top navigation bar: only the wordmark and the three-line menu button.</li>
+    <li>No helper sentences under section headings unless they carry information the user needs.</li>
+    <li>The recommendation page updates live values in place, so it does not blink or re-animate every second.</li>
+    <li>Ask why explains the recommendation rather than opening an empty chat.</li>
+  </ul>
+
+  <div class="foot">Campus Pulse — operating notes</div>
+  <span class="pageno">6</span>
+</section>
+
+</body>
+</html>
