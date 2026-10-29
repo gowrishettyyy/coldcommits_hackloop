@@ -1,0 +1,21 @@
+{
+  "note": "One camera watches four seats (Table T1) of the main canteen. Everything else is simulated until more cameras exist. Mark your own zones with: python setup_zones.py --source 0",
+  "cameras": [
+    {
+      "id": "cam-canteen-t1",
+      "venue_id": "main-canteen",
+      "label": "Canteen - Table T1",
+      "source": "0",
+      "frame_size": [1280, 720],
+      "seat_ids": ["T1S1", "T1S2", "T1S3", "T1S4"],
+      "zones": {
+        "T1S1": [215, 170, 440, 400],
+        "T1S2": [530, 170, 755, 400],
+        "T1S3": [215, 415, 440, 645],
+        "T1S4": [530, 415, 755, 645]
+      },
+      "queue_box": null,
+      "notes": "Aim the webcam so all four chairs of your dining table are in view, then re-mark zones."
+    }
+  ]
+}

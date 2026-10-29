@@ -1,0 +1,76 @@
+{
+  "campus": "Nitte",
+  "note": "Rename these to the real places around your campus. plan = how the floor map is drawn: cols x rows tables, seats around each table.",
+  "venues": [
+    {
+      "id": "main-canteen",
+      "name": "Nitte Main Canteen",
+      "kind": "Canteen",
+      "area": "Academic Block",
+      "distance_m": 140,
+      "walk_min": 2,
+      "map": { "x": 41, "y": 44 },
+      "open": "07:30 - 21:30",
+      "popularity": 1.0,
+      "service_seconds": 40,
+      "ghost_seconds": 1200,
+      "plan": { "cols": 4, "rows": 3, "tables": 12, "seats_per_table": 4, "shape": "square" }
+    },
+    {
+      "id": "annapoorna",
+      "name": "Annapoorna Veg",
+      "kind": "Restaurant",
+      "area": "Market Road",
+      "distance_m": 420,
+      "walk_min": 6,
+      "map": { "x": 68, "y": 30 },
+      "open": "11:00 - 22:30",
+      "popularity": 0.85,
+      "service_seconds": 75,
+      "ghost_seconds": 1200,
+      "plan": { "cols": 4, "rows": 2, "tables": 8, "seats_per_table": 4, "shape": "square" }
+    },
+    {
+      "id": "juice-junction",
+      "name": "Juice Junction",
+      "kind": "Cafe",
+      "area": "College Gate",
+      "distance_m": 260,
+      "walk_min": 4,
+      "map": { "x": 27, "y": 63 },
+      "open": "08:00 - 21:00",
+      "popularity": 0.8,
+      "service_seconds": 55,
+      "ghost_seconds": 900,
+      "plan": { "cols": 3, "rows": 2, "tables": 6, "seats_per_table": 2, "shape": "square" }
+    },
+    {
+      "id": "food-court",
+      "name": "Food Court, Block C",
+      "kind": "Food Court",
+      "area": "Engineering Block",
+      "distance_m": 610,
+      "walk_min": 8,
+      "map": { "x": 76, "y": 66 },
+      "open": "08:00 - 20:30",
+      "popularity": 0.9,
+      "service_seconds": 50,
+      "ghost_seconds": 1200,
+      "plan": { "cols": 5, "rows": 2, "tables": 10, "seats_per_table": 4, "shape": "long" }
+    },
+    {
+      "id": "library-hall",
+      "name": "Central Library Reading Hall",
+      "kind": "Library",
+      "area": "Library Block",
+      "distance_m": 190,
+      "walk_min": 3,
+      "map": { "x": 56, "y": 72 },
+      "open": "08:00 - 23:00",
+      "popularity": 1.05,
+      "service_seconds": 30,
+      "ghost_seconds": 1500,
+      "plan": { "cols": 6, "rows": 2, "tables": 12, "seats_per_table": 5, "shape": "long" }
+    }
+  ]
+}

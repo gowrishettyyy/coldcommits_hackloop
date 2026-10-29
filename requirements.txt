@@ -1,0 +1,8 @@
+# OpenCV reads the camera frames
+opencv-python>=4.9.0
+# YOLO (this also installs torch - the big download, ~200 MB)
+ultralytics>=8.3.0
+numpy>=1.26.0
+# Note: the web app and the API use only the Python standard library.
+# No flask, no fastapi, no npm. On Windows without a C++ compiler use
+# opencv-python-headless instead of opencv-python.
