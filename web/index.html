@@ -3,57 +3,77 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#f6f2ea" />
-<meta name="ui-revision" content="8 - admin console for footage upload and demo clips" />
+<meta name="theme-color" content="#f7a8d2" />
+<meta name="ui-revision" content="9 - poster shell, cream sheet on pink" />
 <meta name="description" content="Live free seats, ghost seats and queue times for campus canteens and cafes, computed on the camera device. Only counts are stored - never footage." />
 <title>Campus Pulse</title>
-<!-- Nunito is bundled in web/fonts, so the big type still looks right offline
-     and on machines with no rounded system font. -->
-<link rel="preload" href="/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin />
+<!-- Anton, Archivo and Instrument Serif are bundled in web/fonts, so the
+     poster type still looks right offline and on machines with no webfonts. -->
+<link rel="preload" href="/fonts/anton.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="/styles.css" />
 </head>
 <body data-mode="student" data-screen="home">
 
-<header class="chrome" id="chrome">
-  <button class="wordmark-mini" data-act="brand" aria-label="Campus Pulse home">Campus Pulse</button>
-  <button class="menu-toggle" data-act="menu" aria-label="Open menu" aria-expanded="false" id="menu-btn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M4 7h16M4 12h16M4 17h16"/>
-    </svg>
-  </button>
-</header>
+<div class="shell">
 
-<main class="viewport">
-  <section class="screen is-active" id="screen-home">
-    <div class="landing">
-      <h1 class="mega" id="mega" aria-label="Campus Pulse">
-        <span class="mega-line" data-text="Campus">Campus</span>
-        <span class="mega-line" data-text="Pulse">Pulse</span>
-      </h1>
-      <div class="home-body" id="home-body"></div>
+  <div class="topbar">
+    <span class="tb-tag">Live seats &middot; no footage</span>
+    <span class="tb-status" id="top-status">connecting</span>
+  </div>
+
+  <header class="masthead" id="chrome">
+    <nav class="mast-nav" aria-label="Sections">
+      <button data-act="nav" data-screen="map">Map</button>
+      <button data-act="nav" data-screen="alerts">Alerts</button>
+      <button data-act="nav" data-screen="insights">Staff</button>
+    </nav>
+    <button class="brand" data-act="brand" aria-label="Campus Pulse home">
+      <span>Campus</span><span class="brand-alt">Pulse</span>
+    </button>
+    <div class="mast-right">
+      <button class="pill" data-act="chat-open">Ask</button>
+      <button class="menu-btn" data-act="menu" aria-label="Open menu" aria-expanded="false" id="menu-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
     </div>
-  </section>
+  </header>
 
-  <section class="screen" id="screen-recommend"><div id="recommend-body"></div></section>
-  <section class="screen" id="screen-map"><div id="map-body"></div></section>
-  <section class="screen" id="screen-venue"><div id="venue-body"></div></section>
-  <section class="screen" id="screen-alerts"><div id="alerts-body"></div></section>
-  <section class="screen" id="screen-insights"><div id="insights-body"></div></section>
+  <main class="viewport">
+    <section class="screen is-active" id="screen-home">
+      <div class="hero">
+        <div class="hero-row">
+          <h1 class="h-big">Find your</h1>
+          <span class="hero-pill">free seat</span>
+        </div>
+        <h1 class="h-big h-big-offset">in seconds</h1>
+      </div>
+      <div class="home-body" id="home-body"></div>
+    </section>
 
-  <section class="screen" id="screen-admin"><div id="admin-body"></div></section>
-</main>
+    <section class="screen" id="screen-recommend"><div id="recommend-body"></div></section>
+    <section class="screen" id="screen-map"><div id="map-body"></div></section>
+    <section class="screen" id="screen-venue"><div id="venue-body"></div></section>
+    <section class="screen" id="screen-alerts"><div id="alerts-body"></div></section>
+    <section class="screen" id="screen-insights"><div id="insights-body"></div></section>
 
-<button class="ask-fab" data-act="chat" aria-label="Ask CampusPulse">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-8.5 8.5c-1.3 0-2.6-.3-3.7-.9L3 21l1.4-5.1A8.5 8.5 0 1 1 21 12z"/></svg>
-  <span>Ask</span>
-</button>
+    <section class="screen" id="screen-admin"><div id="admin-body"></div></section>
+  </main>
+
+  <footer class="foot">
+    <span>Campus Pulse</span>
+    <span>Seat counts only &mdash; frames never leave the camera</span>
+  </footer>
+</div>
 
 <div class="menu" id="menu" aria-hidden="true">
   <div class="menu-card" role="dialog" aria-label="Everything else">
     <div class="menu-head">
-      <div><b>Campus Pulse</b></div>
+      <b>Campus Pulse</b>
       <button class="icon-btn" data-act="menu-close" aria-label="Close menu">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
     <div class="seg" id="mode-switch" role="group" aria-label="Who is looking">
@@ -75,10 +95,10 @@
 
 <div class="chat" id="chat" aria-label="Ask CampusPulse" aria-hidden="true">
   <div class="chat-head">
-    <div><b>Ask Campus Pulse</b></div>
+    <b>Ask Campus Pulse</b>
     <div class="spacer"></div>
     <button class="icon-btn" data-act="chat-close" aria-label="Close">
-      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
   </div>
   <div class="chat-log" id="chat-log"></div>
@@ -86,7 +106,7 @@
   <form class="chat-form" id="chat-form" onsubmit="return false">
     <input id="chat-input" placeholder="Where should I eat right now?" autocomplete="off" aria-label="Your question" />
     <button type="submit" class="send" aria-label="Send">
-      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l6 6-6 6"/></svg>
     </button>
   </form>
 </div>

@@ -7,7 +7,7 @@
 
   var LEVEL = { low: "quiet", medium: "filling", high: "busy", packed: "packed" };
   var LEVEL_TONE = { low: "tone-good", medium: "tone-warn", high: "tone-warn", packed: "tone-bad" };
-  var LEVEL_COLOUR = { low: "#cfdcc9", medium: "#eddfc4", high: "#e6cdb2", packed: "#e0bfc2" };
+  var LEVEL_COLOUR = { low: "#c8f97e", medium: "#ffe08a", high: "#ffc46b", packed: "#ff7fb5" };
   var LEVEL_RANK = { low: 0, medium: 1, high: 2, packed: 3 };
   var DAY_FACTOR = { Mon: 1.0, Tue: 0.98, Wed: 1.02, Thu: 0.97, Fri: 0.95, Sat: 0.72, Sun: 0.5 };
 
@@ -147,9 +147,9 @@
   function freeRing(free, total) {
     var r = 62, c = 2 * Math.PI * r;
     var ratio = total ? free / total : 0;
-    var colour = ratio > 0.5 ? "#b9cfb2" : ratio > 0.28 ? "#e3cfa9" : ratio > 0.1 ? "#dcbfa4" : "#dcb0b6";
+    var colour = ratio > 0.5 ? "#a9ee52" : ratio > 0.28 ? "#c8f97e" : ratio > 0.1 ? "#ffd36e" : "#ff7fb5";
     return '<svg viewBox="0 0 150 150" aria-hidden="true">' +
-      '<circle cx="75" cy="75" r="' + r + '" fill="none" stroke="#efe9dd" stroke-width="12"/>' +
+      '<circle cx="75" cy="75" r="' + r + '" fill="none" stroke="#e6dfd2" stroke-width="13"/>' +
       '<circle cx="75" cy="75" r="' + r + '" fill="none" stroke="' + colour + '" stroke-width="12" stroke-linecap="round" ' +
       'stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + (c * (1 - ratio)).toFixed(1) + '"/></svg>';
   }
@@ -165,18 +165,18 @@
     var dots = points.map(function (_, i) {
       var on = i === highlight;
       return '<circle cx="' + xs[i].toFixed(1) + '" cy="' + ys[i].toFixed(1) + '" r="' + (on ? 5 : 3) +
-        '" fill="' + (on ? "#7d6039" : "#ffffff") + '" stroke="#c3ab84" stroke-width="1.8"/>';
+        '" fill="' + (on ? "#c8f97e" : "#fbf8f2") + '" stroke="#101010" stroke-width="1.8"/>';
     }).join("");
     var marker = highlight >= 0
       ? '<line x1="' + xs[highlight].toFixed(1) + '" y1="' + pad + '" x2="' + xs[highlight].toFixed(1) +
-        '" y2="' + (H - pad) + '" stroke="#e0d8c8" stroke-dasharray="4 4"/>'
+        '" y2="' + (H - pad) +        '" stroke="rgba(16,16,16,0.3)" stroke-dasharray="4 4"/>'
       : "";
     return '<svg class="forecast" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
       '<defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="#efe3cf"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>' +
+      '<stop offset="0%" stop-color="#c8f97e" stop-opacity="0.85"/><stop offset="100%" stop-color="#fbf8f2" stop-opacity="0"/>' +
       "</linearGradient></defs>" +
       '<path d="' + area + '" fill="url(#fg)"/>' +
-      '<path d="' + line + '" fill="none" stroke="#c3ab84" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<path d="' + line + '" fill="none" stroke="#101010" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
       marker + dots + "</svg>";
   }
 
@@ -187,10 +187,10 @@
     var unit = Math.min(W / cols, H / rows);
 
     var fill = {
-      free: "#e7efe4", busy: "#eee9e0", held: "#f7ead6", probably_free: "#e7ecf4", unknown: "#efe9dd",
+      free: "#c8f97e", busy: "#ff7fb5", held: "#ffd36e", probably_free: "#e4ffbf", unknown: "#e7e1d5",
     };
     var stroke = {
-      free: "#b9cfb2", busy: "#cfc5b4", held: "#dcc09a", probably_free: "#b9c7db", unknown: "#d8cfbf",
+      free: "#101010", busy: "#101010", held: "#101010", probably_free: "#101010", unknown: "#8a857d",
     };
 
     var byTable = {};
@@ -203,30 +203,30 @@
       var size = unit * 0.44;
       return '<rect x="' + (cx - size / 2).toFixed(1) + '" y="' + (cy - size / 2).toFixed(1) +
         '" width="' + size.toFixed(1) + '" height="' + size.toFixed(1) + '" rx="' + (size * 0.3).toFixed(1) +
-        '" fill="#faf7f0" stroke="#ece6da"/>';
+        '" fill="#f1ece0" stroke="rgba(16,16,16,0.18)"/>';
     }).join("");
 
     var seats = venue.seats.map(function (s) {
-      var cx = s.x * W, cy = s.y * H, r = Math.max(7, unit * 0.16);
+      var cx = s.x * W, cy = s.y * H, r = Math.max(6.5, unit * 0.135);
       var inGroup = groupIds && groupIds.indexOf(s.id) >= 0;
       var state_ = fill[s.state] ? s.state : "unknown";
       var ghost = s.state === "held" || s.state === "probably_free";
       return '<g class="seat" data-act="seat" data-id="' + esc(s.id) + '">' +
         (inGroup ? '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (r * 2).toFixed(1) +
-          '" fill="#e7efe4" stroke="#b9cfb2" stroke-width="2"/>' : "") +
+          '" fill="none" stroke="#101010" stroke-width="2.5" stroke-dasharray="5 4"/>' : "") +
         '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) +
-        '" fill="' + fill[state_] + '" stroke="' + stroke[state_] + '" stroke-width="2">' +
+        '" fill="' + fill[state_] + '" stroke="' + stroke[state_] + '" stroke-width="1.8">' +
         "<title>" + esc(s.id + " - " + s.state.replace("_", " ") +
           (ghost ? " for " + Math.round(s.ghost_age / 60) + " min" : "") +
           (s.live ? " - watched by a camera" : "")) + "</title></circle>" +
         (s.live ? '<circle cx="' + (cx + r * 1.2).toFixed(1) + '" cy="' + (cy - r * 1.2).toFixed(1) +
-          '" r="' + Math.max(3.4, r * 0.34).toFixed(1) + '" fill="#b6c6db"/>' : "") +
+          '" r="' + Math.max(3.4, r * 0.34).toFixed(1) + '" fill="#101010"/>' : "") +
         "</g>";
     }).join("");
 
     return '<svg class="plan" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="xMidYMid meet" role="img" ' +
       'aria-label="Seat map: green is free, pink is taken">' +
-      '<rect x="1" y="1" width="' + (W - 2) + '" height="' + (H - 2) + '" rx="16" fill="#fdfcf9" stroke="#ece6da"/>' +
+      '<rect x="1" y="1" width="' + (W - 2) + '" height="' + (H - 2) + '" rx="14" fill="#fbf8f2" stroke="#101010"/>' +
       tables + seats + "</svg>";
   }
 
@@ -250,12 +250,13 @@
 
     var ready = !!state.groupSize;
     return '<div class="prefs">' +
-      '<p class="field-label">How many of you?</p>' +
+      '<span class="sticker">Live seats<br/>&amp; queues</span>' +
+      '<p class="field-label">How many of you</p>' +
       '<div class="seat-grid">' + sizes + "</div>" +
-      '<p class="field-label">What matters most?</p>' +
+      '<p class="field-label">What matters</p>' +
       '<div class="chip-row">' + matters + "</div>" +
       '<div class="cta-row"><button class="btn primary" data-act="prefs-done"' +
-      (ready ? "" : " disabled") + ">Show me where to go</button>" +
+      (ready ? "" : " disabled") + ">Find my seat</button>" +
       '<button class="btn ghost" data-act="prefs-skip">Just browsing</button></div>' +
       "</div>";
   }
@@ -270,7 +271,7 @@
         rows.push('<div class="ghost-row">' +
           '<span class="chip ghost">' + esc(g.id) + "</span>" +
           "<div><div style=\"font-weight:600;color:var(--ink)\">" + esc(v.name) + "</div>" +
-          '<div class="note">bag or laptop left behind, nobody nearby</div></div>' +
+          '<div class="note">bag left alone</div></div>' +
           '<div class="spacer"></div>' +
           '<div class="ghost-timer' + (ripe ? " ripe" : "") + '">' + mins + "m " +
           String(secs).padStart(2, "0") + "s</div>" +
@@ -279,12 +280,9 @@
     });
     if (!rows.length) {
       return '<p class="section-title">Ghost seats</p><div class="empty">' +
-        "None right now. When a bag or laptop sits alone for 20+ minutes, it appears here with a live timer " +
-        "and we mark it probably free.</div>";
+        "No abandoned seats right now.</div>";
     }
-    return '<p class="section-title">Ghost seats, live timers</p><div class="panel">' + rows.join("") +
-      '<p class="note">A seat counts as abandoned only after the item sits alone past the venue\'s ghost ' +
-      "threshold (20 minutes in real use). Until then it is held, not free.</p></div>";
+    return '<p class="section-title">Ghost seats</p><div class="panel">' + rows.join("") + "</div>";
   }
 
   function venueCard(v) {
@@ -314,7 +312,7 @@
       return (i ? "L" : "M") + x.toFixed(1) + "," + y.toFixed(1);
     }).join(" ");
     return '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
-      '<path d="' + d + '" fill="none" stroke="#c3ab84" stroke-width="2.4" ' +
+      '<path d="' + d + '" fill="none" stroke="#101010" stroke-width="2.2" ' +
       'stroke-linejoin="round" stroke-linecap="round"/></svg>';
   }
 
@@ -338,15 +336,13 @@
       '<div class="metric"><b>' + totalFree + "</b><span>free seats</span></div>" +
       '<div class="metric"><b>' + s.venues.length + "</b><span>places live</span></div>" +
       "</div></div>" +
-      '<p class="section-title">Food and drink near you</p>' +
+      '<p class="section-title">Food and drink</p>' +
       sortedVenues(food).map(venueCard).join("") +
       (study.length ? '<p class="section-title">Study spaces</p>' + sortedVenues(study).map(venueCard).join("") : "") +
       ghostSection(s.venues) +
       '<div class="more-actions">' +
       '<button class="btn soft" data-act="nav" data-screen="map">Campus map</button>' +
       '<button class="btn soft" data-act="nav" data-screen="alerts">Alerts</button></div>' +
-      '<p class="note" style="margin-top:26px">Cameras see the room; this app never does. Frames are read on the ' +
-      "device and thrown away in the same instant, so only seat states, timers and counts reach this screen.</p>" +
       "</div>";
   }
 
@@ -431,7 +427,7 @@
       '<span class="arrow"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" ' +
       'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M12 5v14M6 13l6 6 6-6"/></svg></span>' +
-      (state.showAll ? "Hide the rest of campus" : "Click to see more available seats on campus right now") +
+      (state.showAll ? "Hide the rest" : "More of campus") +
       "</button>" +
       (state.showAll ? moreSection() : "") +
       "</div>";
@@ -453,8 +449,8 @@
         ", " + y.toFixed(1) + ')">' +
         '<circle r="20" fill="' + colour + '" opacity="0.16"/>' +
         '<circle r="11" fill="' + colour + '"/>' +
-        '<text y="-26" text-anchor="middle" font-size="13" font-weight="800" fill="#22302e">' + v.free + "</text>" +
-        '<text y="32" text-anchor="middle" font-size="9.5" font-weight="700" fill="#93a09c">' +
+        '<text y="-26" text-anchor="middle" font-size="13" font-weight="800" fill="#101010">' + v.free + "</text>" +
+        '<text y="32" text-anchor="middle" font-size="9.5" font-weight="700" fill="#7d7770">' +
         esc(v.name.split(",")[0].split(" ").slice(0, 2).join(" ")) + "</text></g>";
     }).join("");
 
@@ -463,25 +459,26 @@
     }).join("");
 
     el("map-body").innerHTML =
+      '<h1 class="page-title">Campus map</h1>' +
       '<div class="map-card"><svg viewBox="0 0 400 300" width="100%" role="img" ' +
       'aria-label="Campus map with live free-seat counts">' +
       '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">' +
-      '<path d="M20 0H0v20" fill="none" stroke="#ece6da" stroke-width="0.8"/></pattern></defs>' +
-      '<rect width="400" height="300" rx="14" fill="#fdfcf9"/>' +
+      '<path d="M20 0H0v20" fill="none" stroke="rgba(16,16,16,0.10)" stroke-width="0.8"/></pattern></defs>' +
+      '<rect width="400" height="300" rx="14" fill="#fbf8f2"/>' +
       '<rect width="400" height="300" rx="14" fill="url(#grid)"/>' +
-      '<path d="M0 128h400" stroke="#f4efe5" stroke-width="16"/>' +
-      '<path d="M172 0v300" stroke="#f4efe5" stroke-width="14"/>' +
-      '<g fill="#faf7f0" stroke="#ece6da">' +
+      '<path d="M0 128h400" stroke="#ece5d8" stroke-width="16"/>' +
+      '<path d="M172 0v300" stroke="#ece5d8" stroke-width="14"/>' +
+      '<g fill="#f3eee2" stroke="rgba(16,16,16,0.22)">' +
       '<rect x="26" y="34" width="112" height="66" rx="10"/>' +
       '<rect x="204" y="26" width="150" height="74" rx="10"/>' +
       '<rect x="206" y="150" width="132" height="66" rx="10"/>' +
       '<rect x="36" y="152" width="104" height="58" rx="10"/>' +
       '<rect x="192" y="234" width="160" height="48" rx="10"/></g>' +
-      '<g fill="#93a09c" font-size="10" font-weight="700">' +
+      '<g fill="#7d7770" font-size="10" font-weight="700">' +
       '<text x="38" y="54">Academic Block</text><text x="216" y="46">Engineering</text>' +
       '<text x="218" y="168">Market Road</text><text x="48" y="172">Library</text>' +
       '<text x="204" y="252">Sports Ground</text></g>' +
-      '<g fill="#e6e0d0"><circle cx="150" cy="222" r="7"/><circle cx="120" cy="238" r="5"/>' +
+      '<g fill="#dcd5c6"><circle cx="150" cy="222" r="7"/><circle cx="120" cy="238" r="5"/>' +
       '<circle cx="352" cy="132" r="6"/><circle cx="164" cy="70" r="6"/></g>' +
       pins + "</svg></div>" +
       '<div class="map-key">' + key + "</div>" +
@@ -528,7 +525,7 @@
       "<h2>" + esc(v.name) + "</h2>" +
       '<p class="note">' + v.walk_min + " min walk - " + v.distance_m + " m - open " + esc(v.open) + "</p>" +
       '<div class="vc-tags">' +
-      (v.live_seats ? '<span class="chip live">' + v.live_seats + " of " + v.capacity + " seats from a live camera</span>" : "") +
+      (v.live_seats ? '<span class="chip live">' + v.live_seats + " camera seats</span>" : "") +
       (v.ghosts.length ? '<span class="chip ghost">' + v.ghosts.length + " ghost</span>" : "") +
       '<span class="chip ' + (v.crowd_level === "low" ? "good" : "warn") + '">' + LEVEL[v.crowd_level] + "</span></div>" +
       '<div class="stat-grid" style="margin-top:22px">' +
@@ -546,7 +543,7 @@
       '<input type="range" min="0" max="' + Math.max(0, v.forecast.length - 1) + '" value="' + index +
       '" data-act="tm" data-id="' + esc(v.id) + '" aria-label="Projected free seats over the next two hours"/>' +
       '<div class="tm-row"><span>' + (point ? esc(point.label) + " - " + point.free + " free seats" : "") +
-      "</span><span>drag to look ahead</span></div></div>" +
+      "</span></div></div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Seats together</span>' +
       (group ? '<div class="spacer"></div><span class="note">' +
@@ -558,8 +555,7 @@
       (state.groupSize
         ? (group
           ? '<p class="note">Seats <b>' + group.seats.map(function (x) { return esc(x.id); }).join(", ") +
-            "</b> are free together" + (group.same ? " at table " + esc(group.table) : "") +
-            ". They are circled on the map below.</p>" +
+            "</b> free together" + (group.same ? " at table " + esc(group.table) : "") + ".</p>" +
             '<div class="cta-row"><button class="btn primary" data-act="squad" data-id="' + esc(v.id) +
             '">Hold these seats</button></div>'
           : '<p class="note">No ' + state.groupSize + " seats together this moment" +
@@ -572,13 +568,13 @@
       seatMap(v, groupIds) +
       '<div class="legend-seat">' +
       '<span><i class="free"></i>free</span>' +
-      '<span><i class="taken"></i>someone sitting</span>' +
-      '<span><i class="bag"></i>bag, owner nearby</span>' +
+      '<span><i class="taken"></i>busy</span>' +
+      '<span><i class="bag"></i>bag</span>' +
       '<span><i class="abandoned"></i>abandoned</span>' +
-      '<span><i class="camera"></i>seen by a camera</span></div>' +
+      '<span><i class="camera"></i>camera</span></div>' +
       '<p class="note">' + (v.camera_seats
-        ? v.live_seats + " of " + v.capacity + " seats are measured by a live camera; no image leaves the device."
-        : "Demo seat data - no camera is attached here.") + "</p></div>" +
+        ? "Live camera counts. No footage stored."
+        : "Demo seat data.") + "</p></div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Ghost seats</span></div>' +
       ghostRows + "</div>" +
@@ -594,6 +590,7 @@
     var alerts = s.alerts || [];
 
     el("alerts-body").innerHTML =
+      '<h1 class="page-title">Alerts</h1>' +
       '<div class="panel"><div class="panel-head"><span class="panel-title">Notify me about</span></div>' +
       '<div class="chip-row">' +
       '<button class="chip' + (state.notify.rush ? " is-on" : "") + '" data-act="pref" data-key="rush">' +
@@ -601,14 +598,13 @@
       '<button class="chip' + (state.notify.ghost ? " is-on" : "") + '" data-act="pref" data-key="ghost">' +
       "Ghost seat freed up</button></div></div>" +
 
-      '<p class="section-title">Alerts - ' + esc(s.clock.label) + "</p>" +
+      '<p class="section-title">Latest</p>' +
       (alerts.length ? alerts.map(function (a) {
         return '<button class="alert" data-act="venue" data-id="' + esc(a.venue_id) + '">' +
           '<span class="ic">' + (a.kind === "rush" ? "&#9203;" : a.kind === "ghost" ? "&#127890;" : "&#10022;") + "</span>" +
           "<div><b>" + esc(a.title) + "</b><p>" + esc(a.body) + "</p>" +
           '<div class="when">' + esc(a.when) + "</div></div></button>";
-      }).join("") : '<div class="empty">Nothing urgent right now. Alerts appear when a counter is about to ' +
-        "back up or a seat frees up.</div>") +
+      }).join("") : '<div class="empty">Nothing urgent right now.</div>') +
 
       (state.squad ? '<div class="panel" style="margin-top:18px"><div class="panel-head">' +
         '<span class="panel-title">Seats held for your group</span><div class="spacer"></div>' +
@@ -641,8 +637,8 @@
     }).join("");
 
     el("insights-body").innerHTML =
-      '<div class="staff-banner"><span>Staff view</span><span style="font-weight:700;opacity:.85">' +
-      "Counts and timings only. No footage, no faces.</span></div>" +
+      '<h1 class="page-title">Staff view</h1>' +
+      '<div class="staff-banner"><span>Counts only</span><span>no footage, no faces</span></div>' +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Today at a glance</span></div>' +
       '<div class="stat-grid">' +
@@ -678,8 +674,7 @@
       '<div class="kv"><span>Mode</span><b>' + (s.mode === "live-cv" ? "live camera" : "demo dataset") + "</b></div>" +
       '<div class="kv"><span>Seats backed by real detection</span><b>' +
       s.venues.reduce(function (a, v) { return a + v.live_seats; }, 0) + "</b></div>" +
-      '<div class="kv"><span>Frames sent to the app</span><b>0</b></div>' +
-      '<p class="note">' + esc(staff.note) + "</p></div>";
+      '<div class="kv"><span>Frames sent to the app</span><b>0</b></div>' + "</div>";
   }
 
   /* ------------------------------------------------------------------ */
@@ -757,18 +752,14 @@
       var tag = c.error ? '<span class="chip bad">error</span>'
         : c.ready ? '<span class="chip good">live</span>' : '<span class="chip warn">starting</span>';
       return '<div class="cv-row"><div><b style="font-size:.92rem">' + esc(c.id) + "</b>" +
-        '<div class="note">' + esc(c.source) + " - " + c.frames + " frames - " + c.fps + " fps" +
-        (c.error ? " - " + esc(c.error) : "") + "</div></div><div class=\"spacer\"></div>" + tag + "</div>";
-    }).join("") : '<p class="note">No camera attached - every venue is running on the demo dataset, ' +
-      "which is the intended fallback for the demo.</p>";
+        '<div class="note">' + esc(c.source) + (c.error ? " - " + esc(c.error) : "") +
+        "</div></div><div class=\"spacer\"></div>" + tag + "</div>";
+    }).join("") : '<p class="note">No camera attached - demo dataset in use.</p>';
 
     el("sheet-body").innerHTML = "<h3>Demo controls</h3>" +
       '<div class="panel"><div class="panel-head"><span class="panel-title">Computer vision</span>' +
       '<div class="spacer"></div><span class="chip ' + (s.mode === "live-cv" ? "live" : "off") + '">' +
-      (s.mode === "live-cv" ? "Live camera" : "Demo data") + "</span></div>" + camRows +
-      '<p class="note">With no camera attached, every venue is generated from the demo dataset, so all the ' +
-      "screens work. To feed it a real camera: <code>python run.py --camera 0 --show</code> - the label at the " +
-      "top then reads Live camera instead of Demo data.</p></div>" +
+      (s.mode === "live-cv" ? "Live camera" : "Demo data") + "</span></div>" + camRows + "</div>" +
 
       '<div class="panel"><div class="panel-head"><span class="panel-title">Campus clock</span>' +
       '<div class="spacer"></div><span class="note">' + (s.clock ? esc(s.clock.label) : "--:--") + " - " +
@@ -781,10 +772,7 @@
         return '<button class="chip' + (s.clock && s.clock.day === d ? " is-on" : "") + '" data-act="day" data-d="' +
           d + '">' + d + "</button>";
       }).join("") + "</div>" +
-      '<p class="note">' + (s.clock ? s.clock.speed : 30) + "x makes one campus minute pass every " +
-      (60 / (s.clock ? s.clock.speed : 30)).toFixed(0) + " seconds, so a whole lunch rush fits inside a short " +
-      "demo.</p>" +
-      '<p class="field-label">Jump to</p><div class="chip-row">' +
+      '<p class="field-label" style="margin-top:16px">Jump to</p><div class="chip-row">' +
       ["08:00", "13:00", "17:30", "19:30"].map(function (t) {
         return '<button class="chip" data-act="time" data-t="' + t + '">' + t + "</button>";
       }).join("") + "</div></div>" +
@@ -795,8 +783,7 @@
       '<button class="chip" data-act="scenario" data-s="rush">lunch rush</button>' +
       '<button class="chip" data-act="scenario" data-s="ghost">ghost seats</button>' +
       '<button class="chip" data-act="scenario" data-s="empty">near empty</button></div>' +
-      '<p class="note">\'Ghost seats\' makes people abandon bags more often, so the timer story is easy to ' +
-      "show on camera.</p></div>" +
+      "</div>" +
       '<button class="btn soft wide" data-act="sheet-close">Close</button>';
   }
 
@@ -813,10 +800,8 @@
       '<div class="admin-head">' +
       '<p class="eyebrow">Staff access</p>' +
       "<h2>Venue console</h2>" +
-      '<p class="note">Sign in to add camera feeds and demo footage. The engine only ever ' +
-      "keeps seat states and counts - no frame, no face, no recording.</p>" +
       "</div>" +
-      '<div class="admin-card">' +
+      '<div class="admin-card" style="margin-top:18px;max-width:420px">' +
       '<form class="admin-form" id="admin-login-form" autocomplete="off">' +
       '<label class="field-label" for="admin-user">User</label>' +
       '<input class="admin-input" id="admin-user" name="user" placeholder="admin" autocomplete="username" />' +
@@ -828,12 +813,10 @@
       "</div></div>";
   }
 
-  function adminClip(src, title, meta) {
+  function adminClip(src, title, chips) {
     return '<div class="admin-card">' +
       '<video class="clip-video" controls preload="metadata" playsinline src="' + esc(src) + '"></video>' +
-      '<div class="clip-meta"><b>' + esc(title) + "</b>" +
-      '<span class="chip good">detection ready</span></div>' +
-      '<p class="note" style="margin-top:8px">' + esc(meta) + "</p></div>";
+      '<div class="clip-meta"><b>' + esc(title) + "</b>" + (chips || "") + "</div></div>";
   }
 
   /* ---- seat-event detection replay ---------------------------------- */
@@ -841,9 +824,9 @@
      the sidecar JSON the camera worker wrote while it ran the detector, so
      nothing here is simulated and no frame ever leaves the machine. */
   var DET_COLOURS = {
-    person: "#96eb6e", chair: "#5ab3ff", item: "#ffaa3c",
-    busy: "#f04646", free: "#6ee66e", held: "#ffaa3c",
-    probably_free: "#ffdc3c", unknown: "#c8c8c8"
+    person: "#96eb6e", chair: "#7ec8ff", item: "#ffd36e",
+    busy: "#ff7fb5", free: "#a9ee52", held: "#ffd36e",
+    probably_free: "#e4ffbf", unknown: "#c8c8c8"
   };
 
   function adminDetectionClip() {
@@ -851,12 +834,9 @@
       '<div class="det-wrap"><video class="clip-video portrait" data-det-video controls loop ' +
       'preload="metadata" playsinline src="/media/seat-event.mp4"></video>' +
       '<canvas class="det-canvas" data-det-canvas></canvas></div>' +
-      '<div class="clip-meta"><b>Seat event - live detection replay</b>' +
-      '<span class="chip" data-det="chip">loading detections</span></div>' +
-      '<div class="det-seats" data-det="seats"></div>' +
-      '<p class="note" style="margin-top:8px">30 s clip, 720x1280. Raw footage: the person, chair and ' +
-      "T1S1 boxes are drawn from the yolo11n.pt detections recorded by the same camera worker, and " +
-      "the seat chip follows the real tracker state (FREE at the start, BUSY from about 20 s).</p></div>";
+      '<div class="clip-meta"><b>Seat event</b>' +
+      '<span class="chip" data-det="chip">loading</span></div>' +
+      '<div class="det-seats" data-det="seats"></div></div>';
   }
 
   /* One pass only: the operator command loops its clip, so the sidecar can hold
@@ -951,17 +931,8 @@
         var st = seats[sid];
         var cls = st === "free" ? "chip good" : (st === "busy" ? "chip bad" : "chip warn");
         return '<span class="' + cls + '">' + esc(sid) + " - " +
-          esc(String(st).replace("_", " ").toUpperCase()) +
-          (live.indexOf(sid) >= 0 ? " - camera" : "") + "</span>";
+          esc(String(st).replace("_", " ").toUpperCase()) + "</span>";
       }).join("");
-    }
-    if (player.chip) {
-      var text = "frame " + (frame.source_frame || 0) + " - " +
-        (frame.people || 0) + " people - " + (frame.chairs || 0) + " chairs";
-      if (text !== player.lastChip) {
-        player.lastChip = text;
-        player.chip.textContent = text;
-      }
     }
   }
 
@@ -994,8 +965,7 @@
         player.pass = detFirstPass(data);
         if (player.chip) {
           player.chip.className = "chip good";
-          player.chip.textContent = String(data.model || "yolo").replace(/^.*[\\/]/, "") +
-            " - " + player.pass.length + " recorded frames";
+          player.chip.textContent = "live detection";
         }
         paint();
       }).catch(function (err) {
@@ -1021,57 +991,51 @@
       "<h2>Venue console</h2>" +
       '<div class="admin-tags">' +
       '<span class="chip good" data-admin-live="mode">Connecting</span>' +
-      '<span class="chip">yolo11n.pt</span>' +
       '<button class="chip" data-act="admin-logout">Sign out</button>' +
       "</div></div>" +
 
       '<div class="admin-grid">' +
       '<div class="admin-card">' +
       '<div class="panel-head"><span class="panel-title">Upload footage</span></div>' +
-      '<p class="note">Drop a recorded clip or a CCTV export. This demo build stages the file ' +
-      "in the browser only - it is never uploaded and never stored.</p>" +
       '<label class="drop" for="admin-file">' +
       '<input type="file" id="admin-file" accept="video/*" hidden />' +
       "<b>Choose a video</b>" +
       '<span data-admin-live="file">MP4, MOV or AVI</span></label>' +
-      '<label class="field-label" for="admin-venue" style="margin-top:18px">Venue</label>' +
+      '<label class="field-label" for="admin-venue" style="margin-top:14px">Venue</label>' +
       '<select class="admin-input" id="admin-venue">' + venues + "</select>" +
-      '<div class="cta-row"><button class="btn primary" data-act="admin-upload">Queue for analysis</button></div>' +
+      '<div class="cta-row" style="margin-top:12px">' +
+      '<button class="btn primary" data-act="admin-upload">Queue for analysis</button></div>' +
       "</div>" +
 
       '<div class="admin-card">' +
       '<div class="panel-head"><span class="panel-title">Live CCTV</span></div>' +
-      '<p class="note">Point Campus Pulse at an RTSP or MJPEG stream. The operator build feeds this ' +
-      "straight into the detection loop; the panel is here so the flow is visible.</p>" +
       '<label class="field-label" for="admin-stream">Stream URL</label>' +
       '<input class="admin-input" id="admin-stream" placeholder="rtsp://camera.local/stream" />' +
-      '<div class="chip-row" style="margin-top:14px">' +
+      '<div class="chip-row" style="margin-top:10px">' +
       '<button class="chip" data-act="admin-stream-demo" data-url="rtsp://10.0.0.21/canteen">Canteen cam</button>' +
       '<button class="chip" data-act="admin-stream-demo" data-url="rtsp://10.0.0.34/cafe">Cafe cam</button>' +
       "</div>" +
-      '<div class="cta-row"><button class="btn soft" data-act="admin-connect">Connect stream</button></div>' +
+      '<div class="cta-row" style="margin-top:12px">' +
+      '<button class="btn soft" data-act="admin-connect">Connect stream</button></div>' +
       "</div></div>" +
 
       '<p class="section-title">Detection status</p>' +
       '<div class="admin-card"><div class="admin-kv">' +
       '<div class="kv"><span>Mode</span><b data-admin-live="mode-text">-</b></div>' +
-      '<div class="kv"><span>Cameras attached</span><b data-admin-live="cams">0</b></div>' +
-      '<div class="kv"><span>Seats backed by detection</span><b data-admin-live="live-seats">0</b></div>' +
+      '<div class="kv"><span>Cameras</span><b data-admin-live="cams">0</b></div>' +
+      '<div class="kv"><span>Seats from detection</span><b data-admin-live="live-seats">0</b></div>' +
       '<div class="kv"><span>Campus clock</span><b data-admin-live="clock">-</b></div>' +
       '<div class="kv"><span>Frames sent to the browser</span><b>0</b></div>' +
       "</div></div>" +
 
-      '<p class="section-title">Demo clips for the judges</p>' +
+      '<p class="section-title">Demo clips</p>' +
       '<div class="admin-clips">' +
-      adminClip("/media/cafe-table-annotated.mp4", "Cafe table - detection overlay",
-        "66 s operator render, 1280x720. Four seat zones: two red/busy, two green/free, boxes drawn by yolo11n.pt.") +
-      adminClip("/media/canteen-crowd-annotated.mp4", "Canteen crowd - detection overlay",
-        "66 s operator render, 1280x720. Four marked students, all red/busy for the whole clip.") +
+      adminClip("/media/cafe-table-annotated.mp4", "Cafe table",
+        '<span class="chip good">2 free</span><span class="chip bad">2 busy</span>') +
+      adminClip("/media/canteen-crowd-annotated.mp4", "Canteen crowd",
+        '<span class="chip bad">4 busy</span>') +
       adminDetectionClip() +
       "</div>" +
-      '<p class="note" style="margin-top:22px">The first two cards are recorded operator renders, so their ' +
-      "boxes are pixels in the file. The seat-event card plays the untouched clip and redraws the boxes from " +
-      "the detector's own JSON - the same numbers the operator window drew, replayed over the video.</p>" +
       "</div>";
   }
 
@@ -1131,6 +1095,11 @@
     el("tab-alerts-count").textContent = alerts ? String(alerts) : "";
     el("menu-status").textContent = (s.mode === "live-cv" ? "Live camera detection" : "Demo data") +
       " - " + s.clock.label + " - " + s.clock.speed + "x";
+    var topStatus = el("top-status");
+    if (topStatus) {
+      topStatus.textContent = (s.mode === "live-cv" ? "Live CV" : "Demo data") +
+        " \u00b7 " + s.clock.label + " \u00b7 " + s.clock.speed + "x";
+    }
 
     el("mode-switch").querySelectorAll("button").forEach(function (b) {
       b.classList.toggle("is-on", b.dataset.mode === state.mode);
@@ -1430,26 +1399,5 @@
     closeChat();
   });
 
-  /* The giant wordmark assembles letter by letter. Same font, same colours,
-     just a soft rise so it does not appear all at once. */
-  function splitMega() {
-    var node = el("mega");
-    if (!node) return;
-    var index = 0;
-    $(".mega-line", node).forEach(function (line) {
-      var text = line.getAttribute("data-text") || line.textContent;
-      line.textContent = "";
-      text.split("").forEach(function (ch) {
-        var span = document.createElement("span");
-        span.className = "ch";
-        span.style.setProperty("--i", index);
-        index += 1;
-        span.textContent = ch;
-        line.appendChild(span);
-      });
-    });
-  }
-
-  splitMega();
   connect();
 })();
