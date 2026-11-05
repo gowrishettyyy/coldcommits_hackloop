@@ -875,6 +875,16 @@
     el("menu-btn").setAttribute("aria-expanded", "false");
   }
 
+  function openAdminPanel() {
+    closeMenu();
+    state.screen = "admin";
+    state.lastAt = {};
+    closeMenu();
+    showScreen();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    render();
+  }
+
   function toast(title, body, icon) {
     var node = document.createElement("div");
     node.className = "toast";
@@ -999,6 +1009,9 @@
         toast("Seat " + seat.id, seat.state.replace("_", " ") +
           (seat.camera ? " - watched by a camera" : " - from the simulator"), "&#129681;");
       }
+    } else if (act === "admin") {
+      closeMenu();
+      openAdminPanel();
     } else if (act === "sheet") {
       closeMenu();
       state.sheetOpen = true;
@@ -1007,6 +1020,7 @@
     } else if (act === "sheet-close") {
       state.sheetOpen = false;
       el("sheet").classList.remove("is-open");
+    }
     } else if (act === "speed") {
       api("/api/config", { speed: Number(node.dataset.n) });
     } else if (act === "day") {
