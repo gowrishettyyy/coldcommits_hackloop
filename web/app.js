@@ -836,6 +836,178 @@
       '<p class="note" style="margin-top:8px">' + esc(meta) + "</p></div>";
   }
 
+  /* ---- seat-event detection replay ---------------------------------- */
+  /* The clip below is raw stock footage. Every box and seat state comes from
+     the sidecar JSON the camera worker wrote while it ran the detector, so
+     nothing here is simulated and no frame ever leaves the machine. */
+  var DET_COLOURS = {
+    person: "#96eb6e", chair: "#5ab3ff", item: "#ffaa3c",
+    busy: "#f04646", free: "#6ee66e", held: "#ffaa3c",
+    probably_free: "#ffdc3c", unknown: "#c8c8c8"
+  };
+
+  function adminDetectionClip() {
+    return '<div class="admin-card" data-det-player data-det-src="/media/seat-event-detections.json">' +
+      '<div class="det-wrap"><video class="clip-video portrait" data-det-video controls loop ' +
+      'preload="metadata" playsinline src="/media/seat-event.mp4"></video>' +
+      '<canvas class="det-canvas" data-det-canvas></canvas></div>' +
+      '<div class="clip-meta"><b>Seat event - live detection replay</b>' +
+      '<span class="chip" data-det="chip">loading detections</span></div>' +
+      '<div class="det-seats" data-det="seats"></div>' +
+      '<p class="note" style="margin-top:8px">30 s clip, 720x1280. Raw footage: the person, chair and ' +
+      "T1S1 boxes are drawn from the yolo11n.pt detections recorded by the same camera worker, and " +
+      "the seat chip follows the real tracker state (FREE at the start, BUSY from about 20 s).</p></div>";
+  }
+
+  /* One pass only: the operator command loops its clip, so the sidecar can hold
+     rows from a second playthrough where the clip clock restarts. */
+  function detFirstPass(data) {
+    var pass = [], last = -1;
+    (data.frames || []).forEach(function (f) {
+      var t = typeof f.video_t === "number" ? f.video_t
+        : f.source_frame / (data.source_fps || 25);
+      if (t + 0.001 < last) return;
+      last = t;
+      pass.push({ t: t, f: f });
+    });
+    return pass;
+  }
+
+  function detAt(pass, t) {
+    if (!pass.length) return null;
+    var lo = 0, hi = pass.length - 1;
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (pass[mid].t <= t) lo = mid; else hi = mid - 1;
+    }
+    return pass[lo].f;
+  }
+
+  function detBox(ctx, b, colour, label, map) {
+    var x1 = map.x(b[0]), y1 = map.y(b[1]), x2 = map.x(b[2]), y2 = map.y(b[3]);
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x1, y1, Math.max(1, x2 - x1), Math.max(1, y2 - y1));
+    if (!label) return;
+    ctx.font = "600 12px Nunito, system-ui, sans-serif";
+    var tw = ctx.measureText(label).width + 8;
+    var ty = y1 - 15 < 0 ? y1 + 1 : y1 - 15;
+    ctx.fillStyle = "rgba(18,22,20,0.78)";
+    ctx.fillRect(x1, ty, tw, 15);
+    ctx.fillStyle = colour;
+    ctx.fillText(label, x1 + 4, ty + 11);
+  }
+
+  function drawDetections(player) {
+    var video = player.video, canvas = player.canvas, data = player.data;
+    if (!data) return;
+    var w = video.clientWidth, h = video.clientHeight;
+    if (!w || !h) return;
+    var dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    var ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    var size = data.source_size || [720, 1280];
+    var vw = video.videoWidth || size[0], vh = video.videoHeight || size[1];
+    var scale = Math.min(w / vw, h / vh);
+    var map = {
+      x: function (x) { return (w - vw * scale) / 2 + x * scale; },
+      y: function (y) { return (h - vh * scale) / 2 + y * scale; }
+    };
+
+    var frame = detAt(player.pass, video.currentTime);
+    if (!frame) return;
+
+    (frame.chair_boxes || []).forEach(function (b) {
+      detBox(ctx, b, DET_COLOURS.chair, "chair", map);
+    });
+    var names = frame.item_names || [];
+    (frame.item_boxes || []).forEach(function (b, i) {
+      detBox(ctx, b, DET_COLOURS.item, names[i] || "item", map);
+    });
+    (frame.people_boxes || []).forEach(function (b) {
+      detBox(ctx, b, DET_COLOURS.person, "person", map);
+    });
+
+    var zones = data.seat_zones || {};
+    Object.keys(zones).forEach(function (sid) {
+      var state = (frame.seats || {})[sid] || "unknown";
+      detBox(ctx, zones[sid], DET_COLOURS[state] || DET_COLOURS.unknown,
+        sid + " " + String(state).toUpperCase(), map);
+    });
+
+    var seats = frame.seats || {};
+    var live = frame.live_seats || [];
+    var key = JSON.stringify(seats) + live.join(",");
+    if (key !== player.lastSeats && player.seatsEl) {
+      player.lastSeats = key;
+      player.seatsEl.innerHTML = Object.keys(seats).map(function (sid) {
+        var st = seats[sid];
+        var cls = st === "free" ? "chip good" : (st === "busy" ? "chip bad" : "chip warn");
+        return '<span class="' + cls + '">' + esc(sid) + " - " +
+          esc(String(st).replace("_", " ").toUpperCase()) +
+          (live.indexOf(sid) >= 0 ? " - camera" : "") + "</span>";
+      }).join("");
+    }
+    if (player.chip) {
+      var text = "frame " + (frame.source_frame || 0) + " - " +
+        (frame.people || 0) + " people - " + (frame.chairs || 0) + " chairs";
+      if (text !== player.lastChip) {
+        player.lastChip = text;
+        player.chip.textContent = text;
+      }
+    }
+  }
+
+  function initDetectionPlayers() {
+    var nodes = document.querySelectorAll("[data-det-player]");
+    Array.prototype.forEach.call(nodes, function (node) {
+      var video = node.querySelector("[data-det-video]");
+      var canvas = node.querySelector("[data-det-canvas]");
+      if (!video || !canvas) return;
+      var player = {
+        video: video, canvas: canvas, data: null, pass: [],
+        chip: node.querySelector('[data-det="chip"]'),
+        seatsEl: node.querySelector('[data-det="seats"]')
+      };
+      function paint() { drawDetections(player); }
+      ["loadedmetadata", "seeked", "play", "pause", "timeupdate"].forEach(function (evt) {
+        video.addEventListener(evt, paint);
+      });
+      window.addEventListener("resize", paint);
+      video.addEventListener("play", function tick() {
+        if (!document.body.contains(video) || video.paused || video.ended) return;
+        paint();
+        requestAnimationFrame(tick);
+      });
+      fetch(node.getAttribute("data-det-src")).then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      }).then(function (data) {
+        player.data = data;
+        player.pass = detFirstPass(data);
+        if (player.chip) {
+          player.chip.className = "chip good";
+          player.chip.textContent = String(data.model || "yolo").replace(/^.*[\\/]/, "") +
+            " - " + player.pass.length + " recorded frames";
+        }
+        paint();
+      }).catch(function (err) {
+        if (player.chip) {
+          player.chip.className = "chip bad";
+          player.chip.textContent = "detections unavailable";
+        }
+        if (window.console) console.warn("detection replay:", err);
+      });
+    });
+  }
+
   function adminConsole() {
     var s = state.snap || {};
     var venues = (s.venues || []).map(function (v) {
@@ -891,13 +1063,15 @@
 
       '<p class="section-title">Demo clips for the judges</p>' +
       '<div class="admin-clips">' +
-      adminClip("/media/cafe-table.mp4", "Cafe table",
-        "12 s, 1280x720. Four seat zones, two occupied, tracked across 137 frames.") +
-      adminClip("/media/canteen-crowd.mp4", "Canteen crowd",
-        "21 s, 1280x720. Four marked students, all read as busy for the whole clip.") +
+      adminClip("/media/cafe-table-annotated.mp4", "Cafe table - detection overlay",
+        "66 s operator render, 1280x720. Four seat zones: two red/busy, two green/free, boxes drawn by yolo11n.pt.") +
+      adminClip("/media/canteen-crowd-annotated.mp4", "Canteen crowd - detection overlay",
+        "66 s operator render, 1280x720. Four marked students, all red/busy for the whole clip.") +
+      adminDetectionClip() +
       "</div>" +
-      '<p class="note" style="margin-top:22px">Every box in these clips is drawn live by yolo11n.pt - ' +
-      "the source footage is untouched stock video.</p>" +
+      '<p class="note" style="margin-top:22px">The first two cards are recorded operator renders, so their ' +
+      "boxes are pixels in the file. The seat-event card plays the untouched clip and redraws the boxes from " +
+      "the detector's own JSON - the same numbers the operator window drew, replayed over the video.</p>" +
       "</div>";
   }
 
@@ -927,6 +1101,7 @@
     if (holder.dataset.key === key) { patchAdmin(); return; }
     holder.dataset.key = key;
     holder.innerHTML = state.adminAuthed ? adminConsole() : adminLoginCard();
+    if (state.adminAuthed) initDetectionPlayers();
     patchAdmin();
   }
 

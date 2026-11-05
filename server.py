@@ -13,6 +13,7 @@ Routes
 """
 import json
 import os
+import sys
 import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -21,6 +22,7 @@ from cv.insights import answer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(ROOT, "web")
+MEDIA = os.path.join(ROOT, "data", "demo")
 
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -69,17 +71,25 @@ class Handler(BaseHTTPRequestHandler):
     def _static(self, path):
         rel = path.lstrip("/") or "index.html"
         target = os.path.normpath(os.path.join(WEB, rel))
-        if not target.startswith(WEB) or not os.path.isfile(target):
+        inside = target == WEB or target.startswith(WEB + os.sep)
+        if not inside or not os.path.isfile(target):
+            # Only a navigation-shaped URL may fall back to the single-page shell.
+            # An asset (anything with an extension) has to fail loudly: answering
+            # 200 text/html for a missing media route is what made a black video
+            # player look like a working page instead of an obvious 404.
+            if os.path.splitext(rel)[1]:
+                return self._json({"error": f"not found: {rel}"}, 404)
             target = os.path.join(WEB, "index.html")
             if not os.path.isfile(target):
                 return self._json({"error": "web/ not found"}, 404)
+        rel = os.path.relpath(target, WEB).replace(os.sep, "/")
         ext = os.path.splitext(target)[1].lower()
         with open(target, "rb") as fh:
             body = fh.read()
         # The bundled font is content-addressed by name and never changes, so let
         # the browser cache it. Re-fetching a webfont on every page load is what
         # makes a font-display swap flash the type in and out.
-        cached = rel.replace(os.sep, "/").startswith("fonts/")
+        cached = rel.startswith("fonts/")
         self.send_response(200)
         self.send_header("Content-Type", CONTENT_TYPES.get(ext, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
@@ -141,6 +151,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if path.startswith("/media/"):
             return self._media(path)
+
+        if path == "/media":
+            return self._json({"error": "clip name required"}, 404)
 
         if path == "/api/health":
             return self._json({"ok": True, "clock": self.engine.now()})
@@ -221,8 +234,47 @@ class Handler(BaseHTTPRequestHandler):
             return
 
 
+class PulseServer(ThreadingHTTPServer):
+    """A dev server that refuses to share its port.
+
+    On Windows SO_REUSEADDR (which ThreadingHTTPServer turns on) lets a second
+    process bind a port that another process is already serving. The new code
+    then starts "successfully" while the old handler keeps answering requests,
+    which looks exactly like a route that does not exist.
+    """
+    allow_reuse_address = os.name != "nt"
+    daemon_threads = True
+
+
+def _port_busy(host, port):
+    import socket
+    probe = "127.0.0.1" if host in ("", "0.0.0.0", "::") else host
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(0.5)
+        return sock.connect_ex((probe, port)) == 0
+
+
 def serve(engine, host="0.0.0.0", port=8000):
+    if _port_busy(host, port):
+        print(
+            f"\n  port {port} is already in use.\n"
+            "  Another CampusPulse (or another app) is still running there. An old\n"
+            "  instance keeps serving the old code, so new routes - the admin demo\n"
+            "  clips included - stay broken until it is stopped.\n"
+            "\n    Windows:      netstat -ano | findstr :" + str(port) + "\n"
+            "                  taskkill /PID <pid> /F\n"
+            f"    macOS/Linux:  lsof -ti tcp:{port} | xargs kill\n",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+
     Handler.engine = engine
-    httpd = ThreadingHTTPServer((host, port), Handler)
-    httpd.daemon_threads = True
+    httpd = PulseServer((host, port), Handler)
+
+    missing = [name for name in ("cafe-table.mp4", "canteen-crowd.mp4")
+               if not os.path.isfile(os.path.join(MEDIA, name))]
+    if missing:
+        print(f"  warning: demo clip(s) missing from data/demo: {', '.join(missing)}\n"
+              "  the admin console will show a broken player for those.", file=sys.stderr)
+
     return httpd

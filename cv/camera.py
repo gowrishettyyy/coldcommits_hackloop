@@ -234,12 +234,22 @@ class CameraWorker(threading.Thread):
                     prev_states = current
                     stats.append({
                         "t": round(now - self.started_at, 2),
+                        # position inside the clip, so a player can line boxes up
+                        # with the picture even when the file is replayed
+                        "video_t": round(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0, 2),
                         "source_frame": read,
                         "people": len(persons),
                         "chairs": len(chairs),
                         "items": len(items),
                         "item_names": result.get("item_names", []),
+                        # the exact boxes YOLO returned for this frame: the same
+                        # numbers annotate() draws in the operator window
+                        "people_boxes": [[round(float(v), 1) for v in p] for p in persons],
+                        "chair_boxes": [[round(float(v), 1) for v in c] for c in chairs],
+                        "item_boxes": [[round(float(v), 1) for v in i] for i in items],
                         "seats": current,
+                        "live_seats": [sid for sid in seat_ids
+                                       if states.get(sid, {}).get("live")],
                     })
 
                 # pace a recorded clip to its own runtime (see the note above)
@@ -254,16 +264,19 @@ class CameraWorker(threading.Thread):
             if self.show:
                 cv2.destroyAllWindows()
             if self.stats_path:
-                self._write_stats(stats, transitions, out_fps, src_fps)
+                self._write_stats(stats, transitions, out_fps, src_fps,
+                                  seat_zones, (cap_w, cap_h))
 
     # ------------------------------------------------------------------ #
-    def _write_stats(self, frames, transitions, out_fps, src_fps):
+    def _write_stats(self, frames, transitions, out_fps, src_fps,
+                     seat_zones=None, frame_size=None):
         """Writes the sidecar JSON that lets someone check the video's claims.
 
-        It records, per processed frame, how many people/chairs/bags YOLO found
-        and what each seat's state was, plus one row for every state change. That
-        is what makes 'the seat changed because the detector saw something'
-        verifiable instead of asserted.
+        It records, per processed frame, the boxes YOLO returned, how many
+        people/chairs/bags it found and what each seat's state was, plus one row
+        for every state change. That is what makes 'the seat changed because the
+        detector saw something' verifiable instead of asserted - and it lets the
+        admin page redraw the same boxes over the clip.
         """
         import json
 
@@ -286,6 +299,9 @@ class CameraWorker(threading.Thread):
             "people_min": min(people),
             "people_max": max(people),
             "people_mean": round(sum(people) / len(people), 2),
+            "source_size": [int(v) for v in (frame_size or (0, 0))],
+            "seat_zones": {z["id"]: [round(float(v), 1) for v in z["zone"]]
+                           for z in (seat_zones or [])},
             "seats": seat_ids,
             "final_seat_states": frames[-1]["seats"] if frames else {},
             "transitions": transitions,
