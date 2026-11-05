@@ -31,6 +31,9 @@ CONTENT_TYPES = {
     ".png": "image/png",
     ".ico": "image/x-icon",
     ".woff2": "font/woff2",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
 }
 
 QUIET = bool(os.environ.get("PULSE_QUIET"))
@@ -85,10 +88,59 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _media(self, path):
+        """Demo clips live in data/demo, outside web/, so the admin console can
+        play them without copying 5 MB of video into the static tree. Range is
+        supported because the browser's video element needs it to seek."""
+        name = os.path.basename(path)
+        target = os.path.join(ROOT, "data", "demo", name)
+        if not name or not os.path.isfile(target):
+            return self._json({"error": "clip not found"}, 404)
+
+        size = os.path.getsize(target)
+        start, end, partial = 0, size - 1, False
+        header = self.headers.get("Range") or ""
+        if header.startswith("bytes="):
+            spec = header[6:].split(",")[0].strip()
+            first, _, last = spec.partition("-")
+            try:
+                if first:
+                    start = int(first)
+                    end = int(last) if last else size - 1
+                elif last:
+                    start = max(0, size - int(last))
+                start, end = max(0, start), min(end, size - 1)
+                partial = start <= end
+            except ValueError:
+                start, end, partial = 0, size - 1, False
+
+        length = max(0, end - start + 1)
+        self.send_response(206 if partial else 200)
+        self.send_header("Content-Type", CONTENT_TYPES.get(
+            os.path.splitext(target)[1].lower(), "application/octet-stream"))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Content-Length", str(length))
+        if partial:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        with open(target, "rb") as fh:
+            fh.seek(start)
+            remaining = length
+            while remaining > 0:
+                chunk = fh.read(min(65536, remaining))
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                remaining -= len(chunk)
+
     # ------------------------------------------------------------------ #
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path, query = parsed.path, urllib.parse.parse_qs(parsed.query)
+
+        if path.startswith("/media/"):
+            return self._media(path)
 
         if path == "/api/health":
             return self._json({"ok": True, "clock": self.engine.now()})

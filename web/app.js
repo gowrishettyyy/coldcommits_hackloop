@@ -31,6 +31,7 @@
     dragging: false,
     sheetOpen: false,
     insightVenue: null,
+    adminAuthed: false,
     pending: false,
   };
 
@@ -800,6 +801,148 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* ADMIN CONSOLE                                                       */
+  /* ------------------------------------------------------------------ */
+  /* The gate is cosmetic: this is a front-end demo build, so the check runs
+     in the browser. It exists so the flow is visible, not to secure a server. */
+  var ADMIN_USER = "admin";
+  var ADMIN_PASS = "campuspulse";
+
+  function adminLoginCard() {
+    return '<div class="admin">' +
+      '<div class="admin-head">' +
+      '<p class="eyebrow">Staff access</p>' +
+      "<h2>Venue console</h2>" +
+      '<p class="note">Sign in to add camera feeds and demo footage. The engine only ever ' +
+      "keeps seat states and counts - no frame, no face, no recording.</p>" +
+      "</div>" +
+      '<div class="admin-card">' +
+      '<form class="admin-form" id="admin-login-form" autocomplete="off">' +
+      '<label class="field-label" for="admin-user">User</label>' +
+      '<input class="admin-input" id="admin-user" name="user" placeholder="admin" autocomplete="username" />' +
+      '<label class="field-label" for="admin-pass">Password</label>' +
+      '<input class="admin-input" id="admin-pass" name="pass" type="password" placeholder="password" autocomplete="current-password" />' +
+      '<div class="cta-row"><button class="btn primary" type="submit">Sign in</button></div>' +
+      "</form>" +
+      '<p class="admin-hint">Demo credentials: <b>admin</b> / <b>campuspulse</b></p>' +
+      "</div></div>";
+  }
+
+  function adminClip(src, title, meta) {
+    return '<div class="admin-card">' +
+      '<video class="clip-video" controls preload="metadata" playsinline src="' + esc(src) + '"></video>' +
+      '<div class="clip-meta"><b>' + esc(title) + "</b>" +
+      '<span class="chip good">detection ready</span></div>' +
+      '<p class="note" style="margin-top:8px">' + esc(meta) + "</p></div>";
+  }
+
+  function adminConsole() {
+    var s = state.snap || {};
+    var venues = (s.venues || []).map(function (v) {
+      return '<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>";
+    }).join("");
+    if (!venues) venues = '<option value="cafe">Cafe</option>';
+
+    return '<div class="admin">' +
+      '<div class="admin-head">' +
+      '<p class="eyebrow">Signed in as admin</p>' +
+      "<h2>Venue console</h2>" +
+      '<div class="admin-tags">' +
+      '<span class="chip good" data-admin-live="mode">Connecting</span>' +
+      '<span class="chip">yolo11n.pt</span>' +
+      '<button class="chip" data-act="admin-logout">Sign out</button>' +
+      "</div></div>" +
+
+      '<div class="admin-grid">' +
+      '<div class="admin-card">' +
+      '<div class="panel-head"><span class="panel-title">Upload footage</span></div>' +
+      '<p class="note">Drop a recorded clip or a CCTV export. This demo build stages the file ' +
+      "in the browser only - it is never uploaded and never stored.</p>" +
+      '<label class="drop" for="admin-file">' +
+      '<input type="file" id="admin-file" accept="video/*" hidden />' +
+      "<b>Choose a video</b>" +
+      '<span data-admin-live="file">MP4, MOV or AVI</span></label>' +
+      '<label class="field-label" for="admin-venue" style="margin-top:18px">Venue</label>' +
+      '<select class="admin-input" id="admin-venue">' + venues + "</select>" +
+      '<div class="cta-row"><button class="btn primary" data-act="admin-upload">Queue for analysis</button></div>' +
+      "</div>" +
+
+      '<div class="admin-card">' +
+      '<div class="panel-head"><span class="panel-title">Live CCTV</span></div>' +
+      '<p class="note">Point Campus Pulse at an RTSP or MJPEG stream. The operator build feeds this ' +
+      "straight into the detection loop; the panel is here so the flow is visible.</p>" +
+      '<label class="field-label" for="admin-stream">Stream URL</label>' +
+      '<input class="admin-input" id="admin-stream" placeholder="rtsp://camera.local/stream" />' +
+      '<div class="chip-row" style="margin-top:14px">' +
+      '<button class="chip" data-act="admin-stream-demo" data-url="rtsp://10.0.0.21/canteen">Canteen cam</button>' +
+      '<button class="chip" data-act="admin-stream-demo" data-url="rtsp://10.0.0.34/cafe">Cafe cam</button>' +
+      "</div>" +
+      '<div class="cta-row"><button class="btn soft" data-act="admin-connect">Connect stream</button></div>' +
+      "</div></div>" +
+
+      '<p class="section-title">Detection status</p>' +
+      '<div class="admin-card"><div class="admin-kv">' +
+      '<div class="kv"><span>Mode</span><b data-admin-live="mode-text">-</b></div>' +
+      '<div class="kv"><span>Cameras attached</span><b data-admin-live="cams">0</b></div>' +
+      '<div class="kv"><span>Seats backed by detection</span><b data-admin-live="live-seats">0</b></div>' +
+      '<div class="kv"><span>Campus clock</span><b data-admin-live="clock">-</b></div>' +
+      '<div class="kv"><span>Frames sent to the browser</span><b>0</b></div>' +
+      "</div></div>" +
+
+      '<p class="section-title">Demo clips for the judges</p>' +
+      '<div class="admin-clips">' +
+      adminClip("/media/cafe-table.mp4", "Cafe table",
+        "12 s, 1280x720. Four seat zones, two occupied, tracked across 137 frames.") +
+      adminClip("/media/canteen-crowd.mp4", "Canteen crowd",
+        "21 s, 1280x720. Four marked students, all read as busy for the whole clip.") +
+      "</div>" +
+      '<p class="note" style="margin-top:22px">Every box in these clips is drawn live by yolo11n.pt - ' +
+      "the source footage is untouched stock video.</p>" +
+      "</div>";
+  }
+
+  function patchAdmin() {
+    var s = state.snap;
+    if (!s) return;
+    var mode = s.mode === "live-cv" ? "Live camera" : "Demo dataset";
+    var chip = document.querySelector('[data-admin-live="mode"]');
+    if (chip) chip.textContent = mode;
+    var text = document.querySelector('[data-admin-live="mode-text"]');
+    if (text) text.textContent = mode;
+    var cams = document.querySelector('[data-admin-live="cams"]');
+    if (cams) cams.textContent = String((s.cameras || []).length);
+    var live = document.querySelector('[data-admin-live="live-seats"]');
+    if (live) live.textContent = String(s.venues.reduce(function (a, v) { return a + v.live_seats; }, 0));
+    var clock = document.querySelector('[data-admin-live="clock"]');
+    if (clock) clock.textContent = s.clock.label + " - " + s.clock.speed + "x";
+  }
+
+  /* The admin console holds a form and two video players, so it must not be
+     rebuilt on every 1 Hz snapshot - that would reset the picker and restart
+     playback. It is built once per login state; only the numbers are patched. */
+  function renderAdmin() {
+    var holder = el("admin-body");
+    if (!holder) return;
+    var key = state.adminAuthed ? "console" : "login";
+    if (holder.dataset.key === key) { patchAdmin(); return; }
+    holder.dataset.key = key;
+    holder.innerHTML = state.adminAuthed ? adminConsole() : adminLoginCard();
+    patchAdmin();
+  }
+
+  function adminSignIn() {
+    var user = (el("admin-user") || {}).value || "";
+    var pass = (el("admin-pass") || {}).value || "";
+    if (user.trim().toLowerCase() === ADMIN_USER && pass === ADMIN_PASS) {
+      state.adminAuthed = true;
+      renderAdmin();
+      toast("Signed in", "Admin console is open.", "&#128274;");
+    } else {
+      toast("Wrong credentials", "Demo login is admin / campuspulse.", "&#9888;");
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
   /* RENDER + EVENTS                                                     */
   /* ------------------------------------------------------------------ */
   function render() {
@@ -827,6 +970,7 @@
     if (state.screen === "venue" && due("venue", 2500)) renderVenue();
     if (state.screen === "alerts" && due("alerts", 2000)) renderAlerts();
     if (state.screen === "insights" && due("insights", 3000)) renderInsights();
+    if (state.screen === "admin") renderAdmin();
     if (state.sheetOpen) renderSheet();
   }
 
@@ -876,13 +1020,8 @@
   }
 
   function openAdminPanel() {
-    closeMenu();
-    state.screen = "admin";
-    state.lastAt = {};
-    closeMenu();
-    showScreen();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    render();
+    go("admin");
+    renderAdmin();
   }
 
   function toast(title, body, icon) {
@@ -1012,6 +1151,35 @@
     } else if (act === "admin") {
       closeMenu();
       openAdminPanel();
+    } else if (act === "admin-logout") {
+      state.adminAuthed = false;
+      var adminHolder = el("admin-body");
+      if (adminHolder) adminHolder.dataset.key = "";
+      renderAdmin();
+      toast("Signed out", "Admin console locked.", "&#128274;");
+    } else if (act === "admin-upload") {
+      var fileNode = el("admin-file");
+      var picked = fileNode && fileNode.files && fileNode.files[0];
+      var venueNode = el("admin-venue");
+      var venueName = venueNode && venueNode.selectedIndex >= 0
+        ? venueNode.options[venueNode.selectedIndex].text : "the selected venue";
+      if (!picked) {
+        toast("No video chosen", "Pick a clip first.", "&#9888;");
+      } else {
+        toast("Queued for analysis", picked.name + " for " + venueName +
+          ". Demo build: the clip stays on this machine. Run python run.py --camera <file> " +
+          "to process it for real.", "&#127916;");
+      }
+    } else if (act === "admin-connect") {
+      var stream = (el("admin-stream") || {}).value || "";
+      toast(stream ? "Stream staged" : "No stream URL",
+        stream
+          ? "Demo build: the connector is not wired. Run python run.py --camera " + stream + " for the real thing."
+          : "Paste an RTSP or MJPEG URL first.",
+        "&#128225;");
+    } else if (act === "admin-stream-demo") {
+      var streamInput = el("admin-stream");
+      if (streamInput) streamInput.value = node.dataset.url || "";
     } else if (act === "sheet") {
       closeMenu();
       state.sheetOpen = true;
@@ -1020,7 +1188,6 @@
     } else if (act === "sheet-close") {
       state.sheetOpen = false;
       el("sheet").classList.remove("is-open");
-    }
     } else if (act === "speed") {
       api("/api/config", { speed: Number(node.dataset.n) });
     } else if (act === "day") {
@@ -1047,6 +1214,23 @@
     if (ev.target.closest('[data-act="tm"]')) state.dragging = true;
   });
   document.addEventListener("pointerup", function () { state.dragging = false; });
+
+  document.addEventListener("submit", function (ev) {
+    if (ev.target && ev.target.id === "admin-login-form") {
+      ev.preventDefault();
+      adminSignIn();
+    }
+  });
+
+  document.addEventListener("change", function (ev) {
+    if (ev.target && ev.target.id === "admin-file") {
+      var file = ev.target.files && ev.target.files[0];
+      var label = document.querySelector('[data-admin-live="file"]');
+      if (file && label) {
+        label.textContent = file.name + " - " + (file.size / (1024 * 1024)).toFixed(1) + " MB";
+      }
+    }
+  });
 
   el("chat-form").addEventListener("submit", function (ev) {
     ev.preventDefault();

@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#f6f2ea" />
-<meta name="ui-revision" content="7 - giant wordmark, hamburger menu, multi-preference" />
+<meta name="ui-revision" content="8 - admin console for footage upload and demo clips" />
 <meta name="description" content="Live free seats, ghost seats and queue times for campus canteens and cafes, computed on the camera device. Only counts are stored - never footage." />
 <title>Campus Pulse</title>
 <!-- Nunito is bundled in web/fonts, so the big type still looks right offline
@@ -40,66 +40,7 @@
   <section class="screen" id="screen-alerts"><div id="alerts-body"></div></section>
   <section class="screen" id="screen-insights"><div id="insights-body"></div></section>
 
-  <section class="screen" id="screen-admin"><div id="admin-body">
-    <div class="sheet" style="width: 90%; max-width: 800px; margin: 40px auto;">
-      <div class="sheet-panel">
-        <h3>Admin Panel</h3>
-        <div class="panel" style="margin-top: 24px;">
-          <div class="panel-head">
-            <span class="panel-title">Video Management</span>
-          </div>
-          <div class="spacer"></div>
-          <p class="note" style="margin: 16px 0;">Upload CCTV footage or demo videos to analyze seat occupancy. The system will process the video and display seat state analytics.</p>
-
-          <form id="upload-form" style="margin: 24px 0;">
-            <div class="row">
-              <label class="field-label" for="video-file">Video File</label>
-              <input type="file" id="video-file" accept="video/*,.mp4,.mov,.avi" style="width: 100%;"/>
-            </div>
-            <div class="row" style="margin-top: 16px;">
-              <label class="field-label" for="venue-select">Venue</label>
-              <select id="venue-select" style="width: 100%;">
-                <option value="cafe-table">Cafe Table (4 zones)</option>
-                <option value="canteen-crowd">Canteen Crowd (4 zones)</option>
-                <option value="seat-event">Seat Event (1 zone)</option>
-              </select>
-            </div>
-            <button type="submit" class="btn primary" style="width: 100%;">Upload & Analyze</button>
-          </form>
-
-          <div id="upload-status" style="margin-top: 24px; display: none;"></div>
-        </div>
-
-        <div class="panel" style="margin-top: 24px;">
-          <div class="panel-head">
-            <span class="panel-title">Demo Videos</span>
-          </div>
-          <div class="spacer"></div>
-          <p class="note" style="margin: 16px 0;">Pre-loaded demo videos for hackathon judges:</p>
-
-          <div class="cv-row" style="margin: 16px 0;">
-            <div>
-              <b>Cafe Table</b><br/>
-              <span class="note" style="font-size: 13px;">Pexels 6024569, 12s, 1280x720</span>
-            </div>
-            <video width="160" height="120" controls>
-              <source src="data/demo/cafe-table.mp4" type="video/mp4"/>
-            </video>
-          </div>
-
-          <div class="cv-row" style="margin: 16px 0;">
-            <div>
-              <b>Canteen Crowd</b><br/>
-              <span class="note" style="font-size: 13px;">Pexels 6390319, 21s, 1280x720</span>
-            </div>
-            <video width="160" height="120" controls>
-              <source src="data/demo/canteen-crowd.mp4" type="video/mp4"/>
-            </video>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div></section>
+  <section class="screen" id="screen-admin"><div id="admin-body"></div></section>
 </main>
 
 <button class="ask-fab" data-act="chat" aria-label="Ask CampusPulse">
