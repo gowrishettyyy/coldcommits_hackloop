@@ -44,8 +44,11 @@ def hhmm(seconds):
 
 
 class Engine:
-    def __init__(self, speed=30.0, scenario=None, day="Mon", seed=7, cameras=None):
-        self.venues, self.camera_specs = venues_mod.load_world()
+    def __init__(self, speed=30.0, scenario=None, day="Mon", seed=7, cameras=None,
+                 cameras_path=None):
+        # cameras_path lets a demo (or a recorded clip) use its own zone file
+        # without overwriting the webcam zones in data/cameras.json.
+        self.venues, self.camera_specs = venues_mod.load_world(cameras_path=cameras_path)
         self.cameras = cameras                       # CameraManager or None
         self.speed = float(speed)
         self.scenario = scenario
@@ -199,7 +202,12 @@ class Engine:
         queue = int(round(self.sim[vid].queue)) if vid in self.sim else 0
         wait = wait_minutes(queue, seconds)
 
-        live_seats = sum(1 for s in venue["seats"] if s.get("live"))
+        # "live" lives on the per-seat STATE dict, not on the static seat spec:
+        # engine.step() writes it every tick from that camera's frames. Reading it
+        # off venue["seats"] always returned 0, so the UI claimed no seat was
+        # camera-backed even while a camera was driving them.
+        live_seats = sum(1 for s in venue["seats"]
+                         if states.get(s["id"], {}).get("live"))
         data = {
             "id": vid,
             "name": venue["name"],

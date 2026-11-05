@@ -1,0 +1,22 @@
+{
+  "note": "DEMO CONFIG (Phase 1) - NOT the real camera setup. These four zones were marked by hand on data/demo/cafe-table.mp4 (1280x720, fixed tripod shot of one table). data/cameras.json still holds the real webcam zones and is untouched. Use with: python run.py --camera data/demo/cafe-table.mp4 --cameras data/cameras.demo.json",
+  "cameras": [
+    {
+      "id": "cam-canteen-t1",
+      "venue_id": "main-canteen",
+      "label": "Demo clip - cafe table",
+      "source": "data/demo/cafe-table.mp4",
+      "frame_size": [1280, 720],
+      "seat_ids": ["T1S1", "T1S2", "T1S3", "T1S4"],
+      "zones": {
+        "T1S1": [470, 380, 700, 705],
+        "T1S2": [800, 400, 1050, 705],
+        "T1S3": [10, 320, 200, 545],
+        "T1S4": [1200, 480, 1279, 665]
+      },
+      "queue_box": null,
+      "ghost_seconds": 25,
+      "notes": "T1S1 and T1S2 are the two chairs someone is sitting on (expect BUSY). T1S3 and T1S4 are empty chairs in the same frame (expect FREE). The two zones that hold a person are drawn on the occupant, not the whole chair: YOLO boxes the body, so a whole-chair rectangle would only be ~30% covered and would read FREE even while someone sits there. ghost_seconds is shortened to 25 CAMPUS seconds so the abandoned-bag state is visible inside a short demo; the real config keeps 1200."
+    }
+  ]
+}

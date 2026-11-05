@@ -1,0 +1,19 @@
+{
+  "note": "DEMO CONFIG (Phase 1) - NOT the real camera setup. One zone on the empty yellow armchair in data/demo/seat-event.mp4 (720x1280, shot vertically, camera pans). Used to prove a seat goes FREE -> BUSY from real detections. Use with: python run.py --camera data/demo/seat-event.mp4 --cameras data/cameras.seatevent.json",
+  "cameras": [
+    {
+      "id": "cam-canteen-t1",
+      "venue_id": "main-canteen",
+      "label": "Demo clip - one seat event",
+      "source": "data/demo/seat-event.mp4",
+      "frame_size": [720, 1280],
+      "seat_ids": ["T1S1"],
+      "zones": {
+        "T1S1": [130, 760, 320, 1150]
+      },
+      "queue_box": null,
+      "ghost_seconds": 25,
+      "notes": "The zone is the intersection of the chair box across the whole clip, because the camera pans: chair boxes drift from x=111..672 at the start to x=73..491 at the end. The seat reads FREE while the chair is empty and BUSY as soon as the man's person box covers it - which happens slightly before he actually sits down, because the tracker only knows 'a person is in this rectangle', not what his legs are doing."
+    }
+  ]
+}

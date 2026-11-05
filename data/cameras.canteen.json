@@ -1,0 +1,22 @@
+{
+  "note": "DEMO CONFIG (Phase 1) - NOT the real camera setup. These four zones sit on four students at the near table in data/demo/canteen-crowd.mp4 (1280x720). Use with: python run.py --camera data/demo/canteen-crowd.mp4 --cameras data/cameras.canteen.json",
+  "cameras": [
+    {
+      "id": "cam-canteen-t1",
+      "venue_id": "main-canteen",
+      "label": "Demo clip - school canteen",
+      "source": "data/demo/canteen-crowd.mp4",
+      "frame_size": [1280, 720],
+      "seat_ids": ["T1S1", "T1S2", "T1S3", "T1S4"],
+      "zones": {
+        "T1S1": [126, 515, 437, 674],
+        "T1S2": [929, 533, 1218, 689],
+        "T1S3": [318, 432, 508, 552],
+        "T1S4": [892, 342, 1043, 446]
+      },
+      "queue_box": null,
+      "ghost_seconds": 25,
+      "notes": "The camera drifts about 25 px over the 21 s clip, so these zones are accurate at the start and approximate at the end - the 'crowd' clip is evidence for detection and for state changes, not for pixel-exact zone placement. This is a bench-style canteen, so a 'seat' is the patch of bench a student occupies, not a separate chair object. ghost_seconds is 25 CAMPUS seconds for the demo only."
+    }
+  ]
+}
